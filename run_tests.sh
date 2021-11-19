@@ -1,10 +1,26 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
-# GLMARK2="glmark2"
-GLMARK2="glmark2-es2"
+GLMARK2="glmark2"
+# GLMARK2="glmark2-es2"
+HIST_TMP_DIR=/tmp/mk_hist_$(id -u)
+
+cleanup() {
+    test -z "$G_PID" || pkill -P $G_PID || true
+    test -z "$G_TOP_PID" || pkill -P $G_TOP_PID || true
+    test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
+    test -z "$MEM_TOP_PID" || pkill -P $MEM_TOP_PID || true
+    pkill -P $$ || true
+    exit
+}
+trap cleanup EXIT ERR INT
 
 function test_cases() {
+    if test -n "$1"; then
+        echo external-load
+        return
+    fi
     cat <<-EOF
+		no-gpu-stress
 		build:use-vbo=false
 		build:use-vbo=true
 		texture:texture-filter=nearest
@@ -41,74 +57,107 @@ function test_cases() {
 		EOF
 }
 
-cleanup() {
-    pkill -P $G_PID || true
-    pkill -P $$ || true
+run_cyclictest() {
+    local DATA_DIR=$1
+    local DATA_FILE=$DATA_DIR/cyclictest_out.txt
+    local GPU_TOP=$DATA_DIR/gpu_top_out.txt
+    local CPU_TOP=$DATA_DIR/cpu_top_out.txt
+    local MEM_TOP=$DATA_DIR/mem_top_out.txt
+    NUM_CYCLES=100000  # OSADL:  100000000
+    sudo intel_gpu_top -lo $GPU_TOP & G_TOP_PID=$!
+    mpstat -P ALL 1 25 > $CPU_TOP & C_TOP_PID=$!
+    free -s 1 -c 25 > $MEM_TOP & MEM_TOP_PID=$!
+    sudo ./cyclictest -l$NUM_CYCLES -m -Sp90 -i200 -h400 -q >$DATA_FILE
+    kill $C_TOP_PID || true
+    sudo killall intel_gpu_top || true
+    kill $MEM_TOP_PID || true
+    sudo chown $USER $GPU_TOP
 }
-trap cleanup EXIT
+
+mk_hist() {
+    local PLOT_DATA=$1; shift
+    local PLOT_FILE=$1; shift
+    local TITLE="$*"
+    local CORES=$(nproc)
+    local i
+
+    # Plot header
+    cat >$HIST_TMP_DIR/plotcmd <<-EOF
+		set terminal png
+		set output "$PLOT_FILE"
+		set multiplot layout $CORES, 1 title "Latency histogram:  $TITLE" font ",14"
+		unset xtics
+		EOF
+
+    for i in `seq 1 $CORES`; do
+        # Clean up data
+        local CPU_PLOT_DATA=$HIST_TMP_DIR/histogram$i
+        grep -v -e "^#" -e "^$" $PLOT_DATA | tr " " "\t" | cut -f1,$((i+1)) \
+            >$CPU_PLOT_DATA
+        local MAX=$(awk "/Max Latencies/ {print \$$((i+3))}" $PLOT_DATA)
+
+        cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+			set tmargin at screen (1 - (0.1 + ($i-1) * 0.2))
+			set bmargin at screen (1 - (0.08 + $i * 0.2))
+			set xrange [0:400]
+			set logscale y
+			set ytics font ",8"
+			set yrange [0.8:*]
+			set ylabel " "
+			EOF
+        # Add Y label to 2nd last plot
+        test $i != $(($CORES - 1)) || cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+			set ylabel "Number of latency samples"
+			EOF
+        # Add X label to last plot
+        test $i != $CORES || cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+			set xlabel "Latency (us)"
+			set xtics nomirror
+			EOF
+        cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$((i-1)): max $MAX" with histeps
+			#
+			EOF
+    done
+
+    # - Plot footer
+    cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+		unset multiplot
+		EOF
+
+    # Execute plot command
+    gnuplot -persist <$HIST_TMP_DIR/plotcmd
+}
+
 
 test_sequential() {
-    i=1
-    for CASE in $(test_cases); do
-        echo $i $CASE
-        ${GLMARK2} -b $CASE:duration=25.0 & G_PID=$!
-        OUTPUT=$(printf "tests/plot-${GLMARK2}-%02d.png" $i)
-        time ./mklatencyplot.bash $OUTPUT $GLMARK2 "$CASE"
+    if test -n "$1"; then
+        # External load
+        local i=$(($(test_cases | wc -l) + 1))
+    else
+        local i=1
+    fi
+    PLOT_DIR=tests; mkdir -p $PLOT_DIR
+    for CASE in $(test_cases $1); do
+        local IX=$(printf "%02d" $i)
+        local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
+        local PLOT_FILE="$PLOT_DIR/plot-${GLMARK2}-${IX}.png"
+        local TITLE="$GLMARK2 $CASE"
+        echo $i $TITLE
+        rm -rf $DATA_DIR; mkdir -p $DATA_DIR
+        G_PID=
+        if test $CASE != no-gpu-stress -a $CASE != external-load; then
+            ${GLMARK2} -b $CASE:duration=25.0 & G_PID=$!
+        fi
+        time run_cyclictest $DATA_DIR
         echo "  cyclictest done"
-        kill $G_PID
-        wait
+        if test $CASE != no-gpu-stress -a $CASE != external-load; then
+            kill $G_PID
+            wait
+        fi
+        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $TITLE
         i=$((i+1))
     done
 }
 
-test_parallel() {
-    TESTS=""
-    for CASE in $(test_cases); do
-        TESTS+="$GLMARK2 -b '$CASE:duration=25.0' & "
-    done
-    bash -c "$TESTS" & G_PID=$!
-    OUTPUT="tests/plot-${GLMARK2}-parallel.png"
-    CMD="cd $PWD; time ./mklatencyplot.bash $OUTPUT $GLMARK2 all_parallel"
-    docker exec -i ros-devel bash -c "$CMD"
-    echo "  cyclictest done"
-    kill $G_PID
-    wait
-}
-
-# test_sequential
-test_parallel
-
-
-# [build] use-vbo=false: FPS: 3024 FrameTime: 0.331 ms
-# [build] use-vbo=true: FPS: 3393 FrameTime: 0.295 ms
-# [texture] texture-filter=nearest: FPS: 3050 FrameTime: 0.328 ms
-# [texture] texture-filter=linear: FPS: 3050 FrameTime: 0.328 ms
-# [texture] texture-filter=mipmap: FPS: 3003 FrameTime: 0.333 ms
-# [shading] shading=gouraud: FPS: 2826 FrameTime: 0.354 ms
-# [shading] shading=blinn-phong-inf: FPS: 2852 FrameTime: 0.351 ms
-# [shading] shading=phong: FPS: 2655 FrameTime: 0.377 ms
-# [shading] shading=cel: FPS: 2592 FrameTime: 0.386 ms
-# [bump] bump-render=high-poly: FPS: 1478 FrameTime: 0.677 ms
-# [bump] bump-render=normals: FPS: 3247 FrameTime: 0.308 ms
-# [bump] bump-render=height: FPS: 3198 FrameTime: 0.313 ms
-# [effect2d] kernel=0,1,0;1,-4,1;0,1,0;: FPS: 1821 FrameTime: 0.549 ms
-# [effect2d] kernel=1,1,1,1,1;1,1,1,1,1;1,1,1,1,1;: FPS: 1041 FrameTime: 0.961 ms
-# [pulsar] light=false:quads=5:texture=false: FPS: 2894 FrameTime: 0.346 ms
-# [desktop] blur-radius=5:effect=blur:passes=1:separable=true:windows=4: FPS: 874 FrameTime: 1.144 ms
-# [desktop] effect=shadow:windows=4: FPS: 1426 FrameTime: 0.701 ms
-# [buffer] columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=map: FPS: 306 FrameTime: 3.268 ms
-# [buffer] columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=subdata: FPS: 292 FrameTime: 3.425 ms
-# [buffer] columns=200:interleave=true:update-dispersion=0.9:update-fraction=0.5:update-method=map: FPS: 544 FrameTime: 1.838 ms
-# [ideas] speed=duration: FPS: 1966 FrameTime: 0.509 ms
-# [jellyfish] <default>: FPS: 1963 FrameTime: 0.509 ms
-# [terrain] <default>: FPS: 154 FrameTime: 6.494 ms
-# [shadow] <default>: FPS: 1491 FrameTime: 0.671 ms
-# [refract] <default>: FPS: 284 FrameTime: 3.521 ms
-# [conditionals] fragment-steps=0:vertex-steps=0: FPS: 2315 FrameTime: 0.432 ms
-# [conditionals] fragment-steps=5:vertex-steps=0: FPS: 2334 FrameTime: 0.428 ms
-# [conditionals] fragment-steps=0:vertex-steps=5: FPS: 2290 FrameTime: 0.437 ms
-# [function] fragment-complexity=low:fragment-steps=5: FPS: 2341 FrameTime: 0.427 ms
-# [function] fragment-complexity=medium:fragment-steps=5: FPS: 2367 FrameTime: 0.422 ms
-# [loop] fragment-loop=false:fragment-steps=5:vertex-steps=5: FPS: 2309 FrameTime: 0.433 ms
-# [loop] fragment-steps=5:fragment-uniform=false:vertex-steps=5: FPS: 2316 FrameTime: 0.432 ms
-# [loop] fragment-steps=5:fragment-uniform=true:vertex-steps=5: FPS: 2342 FrameTime: 0.427 ms
+test_sequential $1
