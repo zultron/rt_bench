@@ -31,6 +31,7 @@ cleanup() {
     test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
     test -z "$MEM_TOP_PID" || pkill -P $MEM_TOP_PID || true
     pkill -P $$ || true
+    sudo chown -R $USER $HIST_TMP_DIR || true
     exit
 }
 trap cleanup EXIT ERR INT
