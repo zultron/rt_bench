@@ -32,8 +32,14 @@ BUILD_DEPS_GLMARK2=(
     python3
     wayland-protocols
 )
+OTHER_UTILS=(
+    intel-gpu-tools
+    sysstat
+    gnuplot
+)
 
 set_vars() {
+    test -z "$THIS_DIR" || return 0  # Don't run twice
     test "$DEBUG" = true || DEBUG=false
     $DEBUG && DO=echo || DO=
     test $(id -u) = 0 && SUDO="$DO" || SUDO="$DO sudo -H"
@@ -51,7 +57,7 @@ test_installed() {
 }
 
 install_conditionally() {
-    local $PKG
+    local PKG
     for PKG in "${@}"; do
         if test_installed $PKG; then
             echo "Install $PKG:  already installed" 1>&2
@@ -70,8 +76,13 @@ git_clone_and_cd() {
     GIT_URL="$1"
     GIT_DIR="${BUILD_DIR}/$(basename $1 .git)"
     if test ! -e $GIT_DIR/.git; then
+        echo "Cloning git repo $GIT_URL"
+        echo "  into $GIT_DIR"
         mkdir -p $GIT_DIR
         ${DO} git clone --depth 1 "$GIT_URL" $GIT_DIR
+    else
+        echo "Git repo $GIT_URL"
+        echo "  already cloned into $GIT_DIR"
     fi
     cd $GIT_DIR
 }
@@ -80,22 +91,29 @@ build_rt_tests() {
     set_vars
     install_build_deps "${BUILD_DEPS_RT_TESTS[@]}"
     git_clone_and_cd git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
-    make
+    echo "Building rt-tests"
+    ${DO} make
 }
 
 build_glmark2() {
     set_vars
     install_build_deps "${BUILD_DEPS_GLMARK2[@]}"
     git_clone_and_cd https://github.com/glmark2/glmark2.git
-    meson setup build \
+    echo "Building glmark2"
+    ${DO} meson setup build \
         -Dflavors=drm-gl,drm-glesv2,wayland-gl,wayland-glesv2,x11-gl,x11-glesv2
         # [-Ddata-path=DATA_PATH --prefix=PREFIX]
-    ninja -C build
+    ${DO} ninja -C build
 }
 
+install_other_tools() {
+    echo "Installing other tools"
+    install_conditionally "${OTHER_UTILS[@]}"
+}
 
 if $CALLED_AS_SCRIPT; then
-    # while getopts :dt:i:N-bT:m:P:pBHlvn:L:E:GIchD ARG; do
-    # build_rt_tests
+    build_rt_tests
     build_glmark2
+    install_other_tools
+    echo "Completed successfully"
 fi
