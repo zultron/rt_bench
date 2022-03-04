@@ -115,9 +115,40 @@ run_cyclictest() {
     $HAVE_I915 && sudo chown $USER $GPU_TOP || true
 }
 
+
+html_header() {
+    cat <<-EOF
+		<html>
+		  <head>
+		    <title>$1</title>
+		  </head>
+		  <body>
+
+		    <h1>$1</h1>
+		EOF
+}
+
+html_plot() {
+    cat <<-EOF
+
+		    <h2>$1</h2>
+		    <img src="$(basename $2)"/>
+		EOF
+
+}
+
+html_footer() {
+    cat <<-EOF
+
+		  </body>
+		</html>
+		EOF
+}
+
 mk_hist() {
     local PLOT_DATA=$1; shift
     local PLOT_FILE=$1; shift
+    local HTML_FILE=$1; shift
     local TITLE="$*"
     local CORES=$(nproc)
     local i
@@ -170,8 +201,8 @@ mk_hist() {
 
     # Execute plot command
     cat $PLOTCMD | gnuplot -persist
+    html_plot "$TITLE" $PLOT_FILE >> $HTML_FILE
 }
-
 
 test_sequential() {
     check_utils
@@ -183,6 +214,8 @@ test_sequential() {
         local i=1
     fi
     PLOT_DIR=tests; mkdir -p $PLOT_DIR
+    HTML_FILE=$PLOT_DIR/tests.html
+    html_header "Latency tests:  $(date -R)" > $HTML_FILE
     for CASE in $(test_cases $1); do
         local IX=$(printf "%02d" $i)
         local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
@@ -200,9 +233,10 @@ test_sequential() {
             kill $G_PID
             wait
         fi
-        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $TITLE
+        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $HTML_FILE $TITLE
         i=$((i+1))
     done
+    html_footer >> $HTML_FILE
 }
 
 test_sequential $1
