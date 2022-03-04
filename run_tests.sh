@@ -7,7 +7,7 @@ lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 # Find glmark2 (glmark2-es2?)
 GLMARK2=$THIS_DIR/build/glmark2/build/src/glmark2
 if test -x $GLMARK2; then
-    GLMARK2="$GLMARK2 --data-path $THIS_DIR/build/glmark2/data"
+    GLMARK2_ARGS="--data-path $THIS_DIR/build/glmark2/data"
 else
     GLMARK2=glmark2
 fi
@@ -45,6 +45,17 @@ function check_utils() {
 }
 
 function test_cases() {
+    if test -z "$DISPLAY"; then
+        echo "Note:  DISPLAY unset; not running GPU stress tests" >&2
+        echo no-gpu-stress
+        return
+    fi
+    GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')"
+    if test "$GPU_ACCEL" = no; then
+        echo "Note:  DISPLAY=${DISPLAY} not accelerated; not running GPU stress tests" >&2
+        echo no-gpu-stress
+        return
+    fi
     if test -n "$1"; then
         echo external-load
         return
@@ -181,7 +192,7 @@ test_sequential() {
         rm -rf $DATA_DIR; mkdir -p $DATA_DIR
         G_PID=
         if test $CASE != no-gpu-stress -a $CASE != external-load; then
-            ${GLMARK2} -b $CASE:duration=25.0 & G_PID=$!
+            ${GLMARK2} ${GLMARK2_ARGS} -b $CASE:duration=25.0 & G_PID=$!
         fi
         time run_cyclictest $DATA_DIR
         echo "  cyclictest done"

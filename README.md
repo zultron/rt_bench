@@ -24,7 +24,9 @@ script in this project.
 
 ## Running the tests
 
-Run the tests with the script from this project.
+Run the tests with the script from this project.  If the X display is
+running, then the basic `cyclictest` run will be repeated with a
+series of GPU stress tests.
 
     ./run_tests.sh
 
