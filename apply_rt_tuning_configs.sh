@@ -92,9 +92,23 @@ confirm_changes() {
 		  - Add your user to the 'docker' group
 		- Configure kernel cmdline args '${GRUB_CMDLINE}'
 		- Install the RT kernel
-		- Install and configure the IgH EtherCAT Master
-		  - Add your user to the 'ethercat' group
 		- Disable Intel i915 graphics driver and XWindows
+
+	EOF
+    echo -n "WARNING:  Make these changes?  (y/N) " >&2
+    read REALLY
+    if test ! "$REALLY" = y; then
+        echo "Aborting script at user request" >&2
+        exit 1
+    fi
+}
+
+confirm_remove() {
+    # Ask confirmation for we're about to do
+    cat >&2 <<-EOF
+		This script will:
+		- Remove any 'isolcpus=' kernel cmdline args
+		- Reenable the Intel i915 graphics driver and XWindows
 
 	EOF
     echo -n "WARNING:  Make these changes?  (y/N) " >&2
@@ -129,7 +143,9 @@ install_script_deps() {
 install_rt_kernel() {
     ${APT_GET} install -y linux-image-rt-amd64 linux-headers-rt-amd64
     ${APT_GET} install -y cgroup-tools
+}
 
+config_isolcpus() {
     GRUB_CMDLINE_CUR="$(source /etc/default/grub &&
                            echo $GRUB_CMDLINE_LINUX_DEFAULT)"
     if test -n "${GRUB_CMDLINE}" -a "$GRUB_CMDLINE_CUR" != "$GRUB_CMDLINE"; then
@@ -140,18 +156,17 @@ install_rt_kernel() {
     fi
 }
 
-###########################
-# Install hardware drivers
-###########################
+remove_isolcpus() {
+    GRUB_CMDLINE_CUR="$(source /etc/default/grub &&
+                           echo $GRUB_CMDLINE_LINUX_DEFAULT)"
+    shopt -s extglob  # Enable extended glob matching
+    GRUB_CMDLINE_NEW="${GRUB_CMDLINE_CUR/isolcpus=+([-0-9,])/}"
 
-install_hw_drivers() {
-    # Add contrib and non-free repos (once!)
-    ${SUDO} sed -i /etc/apt/sources.list -e 's/ main$/ main contrib non-free/'
-    ${APT_GET} update
-    if $NEED_NON_FREE_FW; then
-        # Solves e.g.
-        #   W: Possible missing firmware /lib/firmware/i915/[...] for module i915
-        ${APT_GET} install -y firmware-misc-nonfree
+    if test "$GRUB_CMDLINE_CUR" != "$GRUB_CMDLINE_NEW"; then
+        # Configure kernel cmdline args
+        ${SUDO} sed -i /etc/default/grub \
+            -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE_NEW}\"/"
+        ${SUDO} update-grub
     fi
 }
 
@@ -172,6 +187,13 @@ disable_i915_graphics() {
     # - Disable X
     ${SUDO} ln -s /usr/lib/systemd/system/multi-user.target \
         /etc/systemd/system/default.target
+}
+
+reenable_i915_graphics() {
+    ${SUDO} rm -f /etc/modprobe.d/blacklist-i915.conf
+    ${SUDO} update-initramfs -u
+    # - Reenable X
+    ${SUDO} rm -f /etc/systemd/system/default.target
 }
 
 ###########################
@@ -227,6 +249,22 @@ finalize() {
 # Install everything
 ###########################
 
+install_or_remove() {
+    case "$1" in
+        remove) remove_everything ;;
+        install) install_everything ;;
+        *) echo "Usage:  $0 [install|remove]" >&2; exit 1 ;;
+    esac
+}
+
+remove_everything() {
+    confirm_remove
+    # At this point we're committed; show what we're doing
+    set -x
+    remove_isolcpus
+    reenable_i915_graphics
+}
+
 install_everything() {
     check_cpu
     confirm_changes
@@ -236,9 +274,10 @@ install_everything() {
     install_script_deps
     install_docker_ce
     install_rt_kernel
+    config_isolcpus
     disable_i915_graphics
     finalize
 }
 
 # Install everything if called as a script
-! $CALLED_AS_SCRIPT || install_everything "$@"
+! $CALLED_AS_SCRIPT || install_or_remove "$@"

@@ -36,7 +36,12 @@ The `apply_rt_tuning_configs.sh` script can apply some configurations that
 improve RT performance on some systems.  It will apply them all at
 once; read the script to apply individual configurations.
 
-    ./apply_rt_tuning_configs.sh
+    ./apply_rt_tuning_configs.sh install
+
+Some of the configurations can be undone, but **only some**; see below
+for which.
+
+    ./apply_rt_tuning_configs.sh remove
 
 The configurations:
 
@@ -45,5 +50,11 @@ The configurations:
   - The host's CPU must be listed in the `check_cpu` function
   - Some CPUs do better isolated in pairs, such as when sharing L2
     cache or hyperthreading
-- Disable the i915 Intel HD Graphics driver
+  - The `remove` command removes CPU isolation
+- Disable the i915 Intel HD Graphics driver and XWindows
   - This GPU is known to cause RT jitter during high 3D load
+  - This also disables XWindows
+  - The `remove` command reenables the i915 driver and XWindows
+- Other things
+  - Install utility packages
+  - Enable legacy cgroups for `cgroup-tools`
