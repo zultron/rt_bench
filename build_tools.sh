@@ -36,6 +36,7 @@ OTHER_UTILS=(
     intel-gpu-tools
     sysstat
     gnuplot
+    mesa-utils
 )
 
 set_vars() {

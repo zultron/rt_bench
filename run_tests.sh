@@ -1,8 +1,29 @@
 #!/bin/bash -e
 
-GLMARK2="glmark2"
-# GLMARK2="glmark2-es2"
 HIST_TMP_DIR=/tmp/mk_hist_$(id -u)
+THIS_DIR=$(readlink -f $(dirname $0))
+lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
+
+# Find glmark2 (glmark2-es2?)
+GLMARK2=$THIS_DIR/build/glmark2/build/src/glmark2
+if test -x $GLMARK2; then
+    GLMARK2="$GLMARK2 --data-path $THIS_DIR/build/glmark2/data"
+else
+    GLMARK2=glmark2
+fi
+
+# Find cyclictest
+CYCLICTEST=$THIS_DIR/build/rt-tests/cyclictest
+test -x $CYCLICTEST || CYCLICTEST=cyclictest
+
+NEEDED_UTILS=(
+    $GLMARK2
+    $CYCLICTEST
+    intel_gpu_top
+    mpstat
+    gnuplot
+    glxinfo
+)
 
 cleanup() {
     test -z "$G_PID" || pkill -P $G_PID || true
@@ -13,6 +34,15 @@ cleanup() {
     exit
 }
 trap cleanup EXIT ERR INT
+
+function check_utils() {
+    for UTIL in "${NEEDED_UTILS[@]}"; do
+        if ! which $UTIL >&/dev/null; then
+            echo "Failed to find executable '$UTIL'" >&2
+            exit 1
+        fi
+    done
+}
 
 function test_cases() {
     if test -n "$1"; then
@@ -64,14 +94,14 @@ run_cyclictest() {
     local CPU_TOP=$DATA_DIR/cpu_top_out.txt
     local MEM_TOP=$DATA_DIR/mem_top_out.txt
     NUM_CYCLES=100000  # OSADL:  100000000
-    sudo intel_gpu_top -lo $GPU_TOP & G_TOP_PID=$!
+    ! $HAVE_I915 || { sudo intel_gpu_top -lo $GPU_TOP & G_TOP_PID=$!; }
     mpstat -P ALL 1 25 > $CPU_TOP & C_TOP_PID=$!
     free -s 1 -c 25 > $MEM_TOP & MEM_TOP_PID=$!
-    sudo ./cyclictest -l$NUM_CYCLES -m -Sp90 -i200 -h400 -q >$DATA_FILE
+    sudo $CYCLICTEST -l$NUM_CYCLES -m -Sp90 -i200 -h400 -q >$DATA_FILE
     kill $C_TOP_PID || true
-    sudo killall intel_gpu_top || true
     kill $MEM_TOP_PID || true
-    sudo chown $USER $GPU_TOP
+    $HAVE_I915 && sudo killall intel_gpu_top || true
+    $HAVE_I915 && sudo chown $USER $GPU_TOP || true
 }
 
 mk_hist() {
@@ -131,6 +161,8 @@ mk_hist() {
 
 
 test_sequential() {
+    check_utils
+
     if test -n "$1"; then
         # External load
         local i=$(($(test_cases | wc -l) + 1))
@@ -141,8 +173,8 @@ test_sequential() {
     for CASE in $(test_cases $1); do
         local IX=$(printf "%02d" $i)
         local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
-        local PLOT_FILE="$PLOT_DIR/plot-${GLMARK2}-${IX}.png"
-        local TITLE="$GLMARK2 $CASE"
+        local PLOT_FILE="$PLOT_DIR/plot-${IX}.png"
+        local TITLE="glmark2 $CASE"
         echo $i $TITLE
         rm -rf $DATA_DIR; mkdir -p $DATA_DIR
         G_PID=
