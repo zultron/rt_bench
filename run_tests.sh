@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-HIST_TMP_DIR=/tmp/mk_hist_$(id -u)
 THIS_DIR=$(readlink -f $(dirname $0))
+HIST_TMP_DIR=$THIS_DIR/tests/tmp
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 
 # Find glmark2 (glmark2-es2?)
@@ -110,9 +110,11 @@ mk_hist() {
     local TITLE="$*"
     local CORES=$(nproc)
     local i
+    local DATA_DIR=$(dirname $PLOT_DATA)
+    local PLOTCMD=$DATA_DIR/plotcmd
 
     # Plot header
-    cat >$HIST_TMP_DIR/plotcmd <<-EOF
+    cat >$PLOTCMD <<-EOF
 		set terminal png
 		set output "$PLOT_FILE"
 		set multiplot layout $CORES, 1 title "Latency histogram:  $TITLE" font ",14"
@@ -121,12 +123,12 @@ mk_hist() {
 
     for i in `seq 1 $CORES`; do
         # Clean up data
-        local CPU_PLOT_DATA=$HIST_TMP_DIR/histogram$i
+        local CPU_PLOT_DATA=$DATA_DIR/histogram$i
         grep -v -e "^#" -e "^$" $PLOT_DATA | tr " " "\t" | cut -f1,$((i+1)) \
             >$CPU_PLOT_DATA
         local MAX=$(awk "/Max Latencies/ {print \$$((i+3))}" $PLOT_DATA)
 
-        cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+        cat >>$PLOTCMD <<-EOF
 			set tmargin at screen (1 - (0.1 + ($i-1) * 0.2))
 			set bmargin at screen (1 - (0.08 + $i * 0.2))
 			set xrange [0:400]
@@ -136,27 +138,27 @@ mk_hist() {
 			set ylabel " "
 			EOF
         # Add Y label to 2nd last plot
-        test $i != $(($CORES - 1)) || cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+        test $i != $(($CORES - 1)) || cat >>$PLOTCMD <<-EOF
 			set ylabel "Number of latency samples"
 			EOF
         # Add X label to last plot
-        test $i != $CORES || cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+        test $i != $CORES || cat >>$PLOTCMD <<-EOF
 			set xlabel "Latency (us)"
 			set xtics nomirror
 			EOF
-        cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+        cat >>$PLOTCMD <<-EOF
 			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$((i-1)): max $MAX" with histeps
 			#
 			EOF
     done
 
     # - Plot footer
-    cat >>$HIST_TMP_DIR/plotcmd <<-EOF
+    cat >>$PLOTCMD <<-EOF
 		unset multiplot
 		EOF
 
     # Execute plot command
-    gnuplot -persist <$HIST_TMP_DIR/plotcmd
+    cat $PLOTCMD | gnuplot -persist
 }
 
 
