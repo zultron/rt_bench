@@ -16,6 +16,9 @@ BUILD_DEPS=(
 )
 BUILD_DEPS_RT_TESTS=(
     libnuma-dev
+    # Not in install instructions, but fix error:
+    # ModuleNotFoundError: No module named 'distutils.sysconfig'
+    python3-distutils
 )
 BUILD_DEPS_GLMARK2=(
     libdrm-dev
@@ -32,11 +35,14 @@ BUILD_DEPS_GLMARK2=(
     python3
     wayland-protocols
 )
-OTHER_UTILS=(
-    intel-gpu-tools
-    sysstat
-    gnuplot
-    mesa-utils
+OTHER_UTILS=(  # Executables used in run_tests.sh
+    intel-gpu-tools  # for intel_gpu_top
+    sysstat  # for mpstat
+    gnuplot  # for gnuplot
+    mesa-utils  # for glxinfo
+    kmod  # for lsmod
+    procps  # for free, pkill
+    psmisc # for killall
 )
 
 set_vars() {
@@ -89,22 +95,32 @@ git_clone_and_cd() {
 }
 
 build_rt_tests() {
+    INSTALL=${1:-false}
     set_vars
     install_build_deps "${BUILD_DEPS_RT_TESTS[@]}"
     git_clone_and_cd git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
     echo "Building rt-tests"
     ${DO} make
+    if $INSTALL; then
+        echo "Installing rt-tests"
+        ${SUDO} make install prefix=/usr
+    fi
 }
 
 build_glmark2() {
+    INSTALL=${1:-false}
+    ! $INSTALL || PREFIX=--prefix=/usr
     set_vars
     install_build_deps "${BUILD_DEPS_GLMARK2[@]}"
     git_clone_and_cd https://github.com/glmark2/glmark2.git
     echo "Building glmark2"
-    ${DO} meson setup build \
+    ${DO} meson setup build $PREFIX \
         -Dflavors=drm-gl,drm-glesv2,wayland-gl,wayland-glesv2,x11-gl,x11-glesv2
-        # [-Ddata-path=DATA_PATH --prefix=PREFIX]
     ${DO} ninja -C build
+    if $INSTALL; then
+        echo "Installing glmark2"
+        ${SUDO} ninja -C build install
+    fi
 }
 
 install_other_tools() {
@@ -113,8 +129,9 @@ install_other_tools() {
 }
 
 if $CALLED_AS_SCRIPT; then
-    build_rt_tests
-    build_glmark2
+    test "$1" = install && INSTALL=true || INSTALL=false
+    build_rt_tests $INSTALL
+    build_glmark2 $INSTALL
     install_other_tools
     echo "Completed successfully"
 fi

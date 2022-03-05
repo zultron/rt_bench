@@ -1,0 +1,451 @@
+#!/bin/bash -e
+# Copyright (c) 2020-2021, Dovetail Automata LLC
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of Dovetail Automata LLC. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author:  John Morris
+#
+# rocker:  Simplify build and run of custom Docker containers
+#
+# https://github.com/zultron/rocker
+
+usage() {
+    if test -z "$*"; then
+        RC=0
+    else
+        echo "Error:  $*" >&2
+        RC=1
+    fi
+    cat >&2 <<-EOF
+	Usage: $0 [ run args ... | build args ... ]
+	  Run args: [-p] [-n NAME] [-t ROCKER_IMAGE_TAG] [[CMD|--] [ARGS...]]
+	    -p:                    Print the \`docker run\` command (don't run)
+	    -n ROCKER_NAME:        Set container name+hostname (default: rocker)
+	    -t ROCKER_IMAGE_TAG:   Docker image tag to run
+	    -d:                    Run detached (ROCKER_RUN_DETACHED=true)
+	    CMD:                   Command to run (default:  /bin/bash)
+	    --:                    End of args (w/ROCKER_ENTRYPOINT_COMMAND)
+	    ARGS:                  Command arguments
+	  Build args: -b [-p] [-i ROCKER_BASE_IMAGE] [-t ROCKER_IMAGE_TAG]
+	    -t ROCKER_IMAGE_TAG:   Final image tag (ROCKER_IMAGE_TAG)
+	    -T ROCKER_BUILD_STAGE: Add --target=ROCKER_BUILD_STAGE arg
+	    -p:                    Print the Dockerfile (don't build)
+	    -i ROCKER_BASE_IMAGE:  Base image to build on
+	  Common args:
+	    -r ROCKER_DIR:         Use this as base directory (default: \$CWD)
+	  A '.rocker' file in \$ROCKER_DIR may set default \$ROCKER_* values
+	EOF
+    exit $RC
+}
+
+readopts_and_go() {
+    # If script called as something besides `rocker`, look for an
+    # existing image and read its labels as config values; these are
+    # overridden by everything else
+    local NAME=$(basename $THIS)
+    local MULTIPLE_IMAGES=false
+    if test $NAME != rocker; then
+        NAME=${NAME/./:}  # Turn name.tag into name:tag
+        local IMAGE="$(docker image ls -q \
+            --filter=label=ROCKER_IMAGE_TAG=${NAME} \
+            --filter=dangling=false)"
+        test $(echo "$IMAGE" | wc -l) -eq 1 || MULTIPLE_IMAGES=true
+        if test -n "$IMAGE" -a $MULTIPLE_IMAGES = false; then
+            # Set ROCKER_* variables from container labels
+            local ARGS="$(docker image inspect $IMAGE \
+                    --format='{{.Config.Labels}}' | \
+                sed -e 's/map\[//' -e 's/\]//' -e 's/ /\n/g')"
+            for A in $ARGS; do
+                case "$A" in
+                    ROCKER_*) declare -g "${A/:/=}";;
+                    *) : ;;
+                esac
+            done
+            ROCKER_IMAGE_TAG=$IMAGE
+        fi
+    fi
+
+    # Read command line args
+    declare -A ROCKER_CL_ARGS
+    while getopts :t:n:dbT:pi:r: ARG; do
+        case $ARG in
+            # Common args
+            t) ROCKER_CL_ARGS[ROCKER_IMAGE_TAG]=$OPTARG ;;
+            r) ROCKER_CL_ARGS[ROCKER_DIR]=$OPTARG ;;
+            # Run args
+            n) ROCKER_CL_ARGS[ROCKER_NAME]=$OPTARG ;;
+            d) ROCKER_CL_ARGS[ROCKER_RUN_DETACHED]=true ;;
+            # Build args
+            b) ROCKER_CL_ARGS[ROCKER_MODE]=build ;;
+            T) ROCKER_CL_ARGS[ROCKER_BUILD_STAGE]=$OPTARG ;;
+            p) PRINT_DRYRUN=true ;;
+            i) ROCKER_CL_ARGS[ROCKER_BASE_IMAGE]=$OPTARG ;;
+            # Usage
+            h) usage ;;
+            :) usage "Option -$OPTARG requires an argument" ;;
+            *) usage "Illegal option -$OPTARG" ;;
+        esac
+    done
+    shift $(($OPTIND - 1))
+
+    # Read from any .rocker config
+    ROCKER_DIR=${ROCKER_DIR:-${ROCKER_CL_ARGS[ROCKER_DIR]:-${PWD}}}
+    cd $ROCKER_DIR
+    if test -z "${NO_ROCKER}" -a -f ${PWD}/.rocker; then
+        source ${PWD}/.rocker
+    fi
+
+    # Command-line args override .rocker file
+    for ARG in "${!ROCKER_CL_ARGS[@]}"; do
+        declare ${ARG}="${ROCKER_CL_ARGS[${ARG}]}"
+    done
+
+    # Defaults
+    ROCKER_NAME=${ROCKER_NAME:-rocker}
+    ROCKER_MODE=${ROCKER_MODE:-run}
+
+    case $ROCKER_MODE in
+        run) run "$@";;
+        build) build "$@" ;;
+    esac
+}
+
+dockerfile() {
+    local EXTRA_PKGS="$(
+        echo -e "${ROCKER_EXTRA_PACKAGES[*]/#/\\\\\\n        }")"
+
+    cat <<-EOF
+	# syntax = docker/dockerfile:1.2
+	ARG ROCKER_BASE_IMAGE
+	FROM \${ROCKER_BASE_IMAGE} AS base
+	SHELL ["/bin/bash", "-xec"]
+        USER root
+
+	EOF
+
+    cat <<-EOF
+	ENV DEBIAN_FRONTEND=noninteractive
+	RUN apt-get update \\
+	    && apt-get install -y \\
+	        sudo \\
+	    && echo "%sudo ALL=(ALL:ALL) NOPASSWD: ALL" \\
+	        >> /etc/sudoers.d/50-nopass \\
+	    && chmod 600 /etc/sudoers.d/50-nopass
+
+	EOF
+
+    if test "${ROCKER_UPGRADE_BASE_OS:-true}" = true; then
+        cat <<-EOF
+	RUN apt-get update \\
+	    && apt-get upgrade -y \\
+	         -o Dpkg::Options::="--force-confdef" \\
+	         -o Dpkg::Options::="--force-confold"
+	EOF
+    else
+        echo "# ROCKER_UPGRADE_BASE_OS=false; not upgrading base OS"
+    fi
+    echo
+
+    if test -n "${EXTRA_PKGS}"; then
+        cat <<-EOF
+	RUN apt-get update \\
+	    && apt-get install -y \\
+	        $(echo -n "$EXTRA_PKGS") \\
+	    && apt-get clean
+	EOF
+    else
+        echo "# ROCKER_EXTRA_PACKAGES empty; not installing extra packages"
+    fi
+    echo
+
+    if test "${ROCKER_INSTALL_DEV_TOOLS:-false}" = true; then
+        cat <<-EOF
+	RUN apt-get update \\
+	    && apt-get install -y \\
+	        ccache \\
+	        clang \\
+	        clang-tidy \\
+	        clang-tools \\
+	        gdb \\
+	        wget \
+	    && apt-get clean
+	EOF
+    else
+        echo "# ROCKER_INSTALL_DEV_TOOLS=false; not installing dev tools"
+    fi
+    echo
+
+    ROCKER_DOCKERFILE=${ROCKER_DOCKERFILE:-.rockerfile}
+    if test -f ${ROCKER_DOCKERFILE}; then
+        # Don't print initial junk emacs mode line
+        sed ${ROCKER_DOCKERFILE} -n \
+            -e '1 {/^#.*-\*-dockerfile-\*-/! p}; 2,$ p'
+    else
+        echo "# no ROCKER_DOCKERFILE found"
+    fi
+    echo
+
+    if test -n "$ROCKER_DOCKERFILE_SNIPPET"; then
+        echo "$ROCKER_DOCKERFILE_SNIPPET"
+    else
+        echo "# no ROCKER_DOCKERFILE_SNIPPET specified"
+    fi
+    echo
+}
+
+build() {
+    # Check options and set defaults
+    test -n "$ROCKER_BASE_IMAGE" || usage "No base image specified"
+    ROCKER_IMAGE_TAG=${ROCKER_IMAGE_TAG:-${ROCKER_BASE_IMAGE}_overlay}
+
+    # Construct `docker build` args
+    BUILD_ARGS=(
+        --build-arg ROCKER_BASE_IMAGE=$ROCKER_BASE_IMAGE
+        --tag $ROCKER_IMAGE_TAG
+        --progress=plain
+        --label=ROCKER_IMAGE_TAG=${ROCKER_IMAGE_TAG}
+        "${ROCKER_BUILD_ARGS[@]}"  # .rocker args
+        "$@"  # Command-line args
+    )
+    if test -n "$ROCKER_BUILD_STAGE"; then
+        BUILD_ARGS+=( --target=$ROCKER_BUILD_STAGE )
+    fi
+
+    if test -n "$ROCKER_NAME"; then
+        # Add `rocker` run data as labels
+        BUILD_ARGS+=( --label=ROCKER_NAME=${ROCKER_NAME} )
+        test ${ROCKER_RUN_DETACHED:-false} != true || \
+            BUILD_ARGS+=( --label=ROCKER_RUN_DETACHED=true )
+        test ${ROCKER_PRIVILEGED:-false} != true || \
+            BUILD_ARGS+=( --label=ROCKER_PRIVILEGED=true )
+        test -z "${ROCKER_GROUPS}" || \
+            BUILD_ARGS+=( --label=ROCKER_GROUPS="${ROCKER_GROUPS}" )
+        test -z "${ROCKER_ENTRYPOINT_COMMAND}" || \
+            BUILD_ARGS+=(
+                --label=ROCKER_ENTRYPOINT_COMMAND="${ROCKER_ENTRYPOINT_COMMAND}"
+            )
+        test -z "${ROCKER_HOST_NETWORKING}" || \
+            BUILD_ARGS+=(
+		--label=ROCKER_HOST_NETWORKING="${ROCKER_HOST_NETWORKING}"
+	    )
+        test -z "${ROCKER_USER_CONFIG}" || \
+            BUILD_ARGS+=( --label=ROCKER_USER_CONFIG="${ROCKER_USER_CONFIG}" )
+        test -z "${ROCKER_INIT}" || \
+            BUILD_ARGS+=( --label=ROCKER_INIT="${ROCKER_INIT}" )
+        test -z "${ROCKER_RUN_ARGS}" || \
+            BUILD_ARGS+=( --label=ROCKER_RUN_ARGS="${ROCKER_RUN_ARGS}" )
+    fi
+
+    if ${ROCKER_LOAD_CONTEXT:-false}; then
+        BUILD_ARGS+=(
+	    -f -
+	    ${PWD}
+        )
+    else
+        BUILD_ARGS+=( - )
+    fi
+
+    # Print Dockerfile and exit if -p specified
+    if ${PRINT_DRYRUN:-false}; then
+        dockerfile
+        echo
+        echo "# Would build with:"
+        echo "# docker build ${BUILD_ARGS[@]}"
+        exit 0
+    fi
+
+    # Enable buildkit
+    export DOCKER_BUILDKIT=1
+
+    # Run `docker build`, feeding the Dockerfile over stdin
+    dockerfile | {
+        set -x
+        exec docker build "${BUILD_ARGS[@]}"
+    }
+}
+
+run() {
+    # Check arguments
+    test -n "$ROCKER_IMAGE_TAG" || usage "No image tag specified"
+
+    # Custom entrypoint
+    ENTRYPOINT="${THIS}"
+
+    # Host UID/GID
+    HUID=$(id -u)
+    HGID=$(id -g)
+
+    # Construct `docker run` args
+    # - base args
+    DOCKER_RUN_ARGS=(
+        -it --rm
+    )
+    test "$ROCKER_RUN_DETACHED" != true || DOCKER_RUN_ARGS+=( -d )
+    test "$ROCKER_PRIVILEGED" != true || DOCKER_RUN_ARGS+=( --privileged )
+
+    # - container name
+    DOCKER_RUN_ARGS+=(
+        --name $ROCKER_NAME
+    )
+    # - networking and host name
+    if test ${ROCKER_HOST_NETWORKING:-false} = true; then
+	DOCKER_RUN_ARGS+=(
+	    --network host
+	    --hostname $(hostname)
+	)
+    else
+	DOCKER_RUN_ARGS+=(
+	    --hostname $ROCKER_NAME
+	)
+    fi
+
+    # - user config
+    if test "${ROCKER_USER_CONFIG:-true}" = true; then
+        DOCKER_RUN_ARGS+=(
+            -e HUID=$HUID
+            -e HGID=$HGID
+            -e HHOME=$HOME
+            -e HUSER=$USER
+            -e XDG_RUNTIME_DIR
+            -v $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
+            -v $HOME:$HOME
+        )
+    fi
+
+    # - display, graphics, audio
+    DOCKER_RUN_ARGS+=(
+        -e TERM
+        -e DISPLAY
+        -v /tmp/.X11-unix:/tmp/.X11-unix
+        -v /dev/dri:/dev/dri
+        -v /run/user/$HUID:/run/user/$HUID
+    )
+
+    # - container start-up config
+    DOCKER_RUN_ARGS+=(
+        -u 0:0
+        -w ${ROCKER_WORKDIR:-${HERE}}
+        -v $ENTRYPOINT:/usr/bin/entrypoint
+        -e ROCKER_TRACING_ON=$ROCKER_TRACING_ON
+        -e ROCKER_GROUPS=$ROCKER_GROUPS
+        --entrypoint /usr/bin/entrypoint
+    )
+    if test -n "$ROCKER_ENTRYPOINT_COMMAND"; then
+        DOCKER_RUN_ARGS+=(
+            -e ROCKER_ENTRYPOINT_COMMAND="$ROCKER_ENTRYPOINT_COMMAND"
+        )
+    fi
+    if test -z "$ROCKER_INIT"; then
+        DOCKER_RUN_ARGS+=( --init )
+    else
+        DOCKER_RUN_ARGS+=( -e ROCKER_INIT=${ROCKER_INIT} )
+    fi
+
+    # - user args
+    DOCKER_RUN_ARGS+=(
+        "${ROCKER_RUN_ARGS[@]}"
+    )
+
+    # - image tag and command line args
+    DOCKER_RUN_ARGS+=(
+        $ROCKER_IMAGE_TAG
+        "$@"
+    )
+
+    # Now run the container (or print what would have been done)
+    test ${PRINT_DRYRUN:-false} = true && ACTION=echo || ACTION=exec
+    $ACTION docker run "${DOCKER_RUN_ARGS[@]}"
+}
+
+entrypoint() {
+    # Add hostname to hosts
+    sh -c 'echo "127.0.2.1  `hostname`" >> /etc/hosts'
+
+    # Install `sudo` for a one-off image with no overlay
+    if ! which >&/dev/null sudo; then
+        echo "rocker:  Installing 'sudo'; consider an overlay" >&2
+        apt-get update -qq
+        apt-get install -qq -y sudo
+        echo "%sudo ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/50-nopass
+        chmod 600 /etc/sudoers.d/50-nopass
+    fi
+
+    # Add user and group to system
+    sed -i /etc/passwd -e "/^${HUSER}:/ d" # Clean stale entries
+    echo "${HUSER}:x:${HUID}:${HGID}::${HHOME}:/bin/bash" >>/etc/passwd
+    sed -i /etc/shadow -e "/^${HUSER}:/ d" # Clean stale entries
+    echo "${HUSER}:*:18463:0:99999:7:::" >>/etc/shadow
+    sed -i /etc/group -e "/^${HUSER}:/ d" # Clean stale entries
+    echo "${HUSER}:x:${HGID}:" >>/etc/group
+    sed -i /etc/gshadow -e "/^${HUSER}:/ d" # Clean stale entries
+    echo "${HUSER}:*::" >>/etc/gshadow
+    for GRP in sudo dialout plugdev video cdrom ${ROCKER_GROUPS}; do
+        getent group ${GRP} >/dev/null || continue
+        adduser ${HUSER} ${GRP} >&/dev/null
+    done
+
+    # Silence 'sudo: setrlimit(RLIMIT_CORE): Operation not permitted'
+    echo Set disable_coredump false > /etc/sudo.conf
+
+    # Set environment
+    export HOME=$HHOME
+    export USER=$HUSER
+
+    # Clean up
+    unset HUID HGID HHOME HUSER
+
+    if test -n "$ROCKER_INIT"; then
+        exec $ROCKER_INIT
+    else
+        # Run command as user
+        if test -z "$ROCKER_ENTRYPOINT_COMMAND"; then
+            default_cmd=(/bin/bash --login -i)
+            exec sudo -u ${USER} -E "${@:-${default_cmd[@]}}"
+        else
+            exec sudo -u ${USER} -E $ROCKER_ENTRYPOINT_COMMAND "${@}"
+        fi
+    fi
+
+}
+
+# Record cwd and script location before changing directory
+HERE="$(readlink -f $PWD)"
+THIS="$(readlink -f $0)"
+
+# Debugging
+test "${ROCKER_TRACING_ON:-false}" = true || ROCKER_TRACING_ON=false
+! $ROCKER_TRACING_ON || set -x
+
+# Am I running as an entrypoint?
+case $(basename $0) in
+    # Entrypoint mode
+    entrypoint) entrypoint "$@" ;;
+    # Normal case; read CL args and run or build
+    *) readopts_and_go "$@" ;;
+esac

@@ -1,0 +1,8 @@
+# Avoid dirtying the `docker build` cache with irrelevant changes
+
+# Ignore everything by default
+*
+# Don't ignore specific items
+!docker/rt_bench
+!build_tools.sh
+!run_tests.sh

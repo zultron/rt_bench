@@ -1,0 +1,31 @@
+#                                             -*-shell-script-*-
+#
+# Configurable options
+# - OS vendor
+OS_VENDOR=debian
+# - OS distro
+OS_RELEASE=bullseye
+#
+# Build options
+#
+# - Start from Debian Bullseye base image
+ROCKER_BASE_IMAGE=${OS_VENDOR}:${OS_RELEASE}
+# - Dockerfile snippet
+ROCKER_DOCKERFILE=docker/Dockerfile
+# - Tag for built image
+ROCKER_IMAGE_TAG=rt_bench
+# - Load this directory into docker build context
+ROCKER_LOAD_CONTEXT=true
+# - Extra `docker build` args
+ROCKER_BUILD_ARGS=(
+    --build-arg=OS_VENDOR=$OS_VENDOR
+    --build-arg=OS_RELEASE=$OS_RELEASE
+)
+
+#
+# Run options
+#
+# - Container name
+ROCKER_NAME=rt_bench
+# - Run privileged
+ROCKER_PRIVILEGED=true

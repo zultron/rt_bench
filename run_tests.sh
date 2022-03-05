@@ -4,17 +4,21 @@ THIS_DIR=$(readlink -f $(dirname $0))
 HIST_TMP_DIR=$THIS_DIR/tests/tmp
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 
-# Find glmark2 (glmark2-es2?)
-GLMARK2=$THIS_DIR/build/glmark2/build/src/glmark2
-if test -x $GLMARK2; then
-    GLMARK2_ARGS="--data-path $THIS_DIR/build/glmark2/data"
+if test -z "$IN_DOCKER"; then
+    # Find glmark2 (glmark2-es2?)
+    GLMARK2=$THIS_DIR/build/glmark2/build/src/glmark2
+    if test -x $GLMARK2; then
+        GLMARK2_ARGS="--data-path $THIS_DIR/build/glmark2/data"
+    else
+        GLMARK2=glmark2
+    fi
+    # Find cyclictest
+    CYCLICTEST=$THIS_DIR/build/rt-tests/cyclictest
+    test -x $CYCLICTEST || CYCLICTEST=cyclictest
 else
     GLMARK2=glmark2
+    CYCLICTEST=cyclictest
 fi
-
-# Find cyclictest
-CYCLICTEST=$THIS_DIR/build/rt-tests/cyclictest
-test -x $CYCLICTEST || CYCLICTEST=cyclictest
 
 NEEDED_UTILS=(
     $GLMARK2
@@ -23,6 +27,10 @@ NEEDED_UTILS=(
     mpstat
     gnuplot
     glxinfo
+    lsmod
+    free pkill
+    killall
+    sudo
 )
 
 cleanup() {

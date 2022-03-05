@@ -58,3 +58,20 @@ The configurations:
 - Other things
   - Install utility packages
   - Enable legacy cgroups for `cgroup-tools`
+
+## Running in a Docker container
+
+The tests can be run from a Docker image for additional portability or
+for comparing bare metal and containerized performance.  The
+`docker/rt_bench` [rocker script][rocker] builds the image and runs a
+container with access to the host GPU.
+
+Build the container image:
+
+    ./docker/rt_bench -b
+
+Run the container:
+
+    ./docker/rt_bench
+
+[rocker]:  https://github.com/zultron/rocker
