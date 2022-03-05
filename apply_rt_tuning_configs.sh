@@ -46,7 +46,7 @@ check_cpu() {
             GRUB_CMDLINE="isolcpus=${RT_CPUS}"
             ;;
         *)
-            echo "CPU '$CPU' unknown; please add to $0.  Exiting." >&2
+            echo "CPU '$CPU' unknown; please add to $BASH_SOURCE.  Exiting." >&2
             exit 1
             ;;
     esac
@@ -64,7 +64,7 @@ check_cpu() {
 
     case "$DMI_DATA" in
         *:pnMXE1500:*)
-            # ADLink Tech MXE-1500 Series
+            # ADLink Tech MXE-1500 Series; Intel(R) Celeron(R) CPU N3160 @ 1.60GHz
             ETHERCAT_NIC=${ETHERCAT_NIC:-eno1}  # Left-hand port on rear
             ;;
         *:pnNUC8i5BEK:*)
@@ -77,7 +77,7 @@ check_cpu() {
             NEED_NON_FREE_FW=true  # i915 drivers
             ;;
         *)
-            echo "DMI data '$DMI_DATA' unknown; please add to $0.  Exiting." >&2
+            echo "DMI data '$DMI_DATA' unknown; please add to $BASH_SOURCE.  Exiting." >&2
             exit 1
             ;;
     esac
@@ -253,7 +253,7 @@ install_or_remove() {
     case "$1" in
         remove) remove_everything ;;
         install) install_everything ;;
-        *) echo "Usage:  $0 [install|remove]" >&2; exit 1 ;;
+        *) echo "Usage:  $BASH_SOURCE [install|remove]" >&2; exit 1 ;;
     esac
 }
 
