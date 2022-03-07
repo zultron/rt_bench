@@ -35,12 +35,15 @@ check_cpu() {
     case "$CPU" in
         "Intel(R) Celeron(R) CPU  N3160  @ 1.60GHz")
             RT_CPUS=${RT_CPUS:-2-3}  # Shared L2 cache
+            NONRT_CPUS=${NONRT_CPUS:-0-1}
             ;;
         "Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz")
             RT_CPUS=${RT_CPUS:-3,7}  # Shared threads
+            NONRT_CPUS=${NONRT_CPUS:-0-2,4-6}
             ;;
         "Intel(R) Atom(TM) Processor E3950 @ 1.60GHz")
             RT_CPUS=${RT_CPUS:-2-3}  # Shared L2 cache
+            NONRT_CPUS=${NONRT_CPUS:-0-1}
             ;;
         *)
             echo "CPU '$CPU' unknown; please add to $BASH_SOURCE.  Exiting." >&2
@@ -63,6 +66,8 @@ confirm_changes() {
         ! ${RM_CONFIG_ISOLCPUS:-false} || echo "- Remove isolcpus=${RT_CPUS} from kernel cmdline"
         ! ${CONFIG_NOHZ_FULL:-false} || echo "- Add nohz_full=${RT_CPUS} to kernel cmdline"
         ! ${RM_CONFIG_NOHZ_FULL:-false} || echo "- Remove nohz_full=${RT_CPUS} from kernel cmdline"
+        ! ${CONFIG_IRQAFFINITY:-false} || echo "- Add irqaffinity=${NONRT_CPUS} to kernel cmdline"
+        ! ${RM_CONFIG_IRQAFFINITY:-false} || echo "- Remove irqaffinity=${NONRT_CPUS} from kernel cmdline"
         ! ${INSTALL_CGROUPS:-false} || echo "- Mount legacy cgroups at boot & install cgroup-tools"
         ! ${REMOVE_CGROUPS:-false} || echo "- Do not mount legacy cgroups at boot"
         ! ${DISABLE_GPU:-false} || echo "- Disable i915 graphics kernel module"
@@ -87,6 +92,8 @@ usage() {
 		  -I:  Remove 'isolcpus=' kernel command line option
 		  -z:  Configure 'nohz_full=' kernel command line option
 		  -Z:  Remove 'nohz_full=' kernel command line option
+		  -q:  Configure 'irqaffinity=' kernel command line option
+		  -Q:  Remove 'irqaffinity=' kernel command line option
 		  -c:  Mount legacy cgroups at boot & install cgroup-tools
 		  -C:  Do not mount legacy cgroups at boot
 		  -g:  Disable i915 Intel graphics kernel module
@@ -201,6 +208,14 @@ remove_nohz_full() {
     unconfig_kernel_cmdline nohz_full "nohz_full=+([-0-9, ])"
 }
 
+config_irqaffinity() {
+    config_kernel_cmdline irqaffinity=$NONRT_CPUS irqaffinity=
+}
+
+remove_irqaffinity() {
+    unconfig_kernel_cmdline irqaffinity "irqaffinity=+([-0-9, ])"
+}
+
 install_cgroups() {
     # Install tools
     ${SUDO} apt-get install -y cgroup-tools
@@ -276,7 +291,7 @@ finalize() {
 ###########################
 
 if $CALLED_AS_SCRIPT; then
-    while getopts :dkiIzZcCgGxXh ARG; do
+    while getopts :dkiIzZqQcCgGxXh ARG; do
         case $ARG in
             d) INSTALL_DOCKER=true ;;
             k) INSTALL_RT_KERNEL=true; APT_GET_UPDATE=true ;;
@@ -284,6 +299,8 @@ if $CALLED_AS_SCRIPT; then
             I) RM_CONFIG_ISOLCPUS=true ;;
             z) CONFIG_NOHZ_FULL=true; CHECK_CPU=true ;;
             Z) RM_CONFIG_NOHZ_FULL=true ;;
+            q) CONFIG_IRQAFFINITY=true; CHECK_CPU=true ;;
+            Q) RM_CONFIG_IRQAFFINITY=true ;;
             c) INSTALL_CGROUPS=true; APT_GET_UPDATE=true ;;
             C) REMOVE_CGROUPS=true ;;
             g) DISABLE_GPU=true ;;
@@ -306,6 +323,8 @@ if $CALLED_AS_SCRIPT; then
     ! ${RM_CONFIG_ISOLCPUS:-false} || remove_isolcpus
     ! ${CONFIG_NOHZ_FULL:-false} || config_nohz_full
     ! ${RM_CONFIG_NOHZ_FULL:-false} || remove_nohz_full
+    ! ${CONFIG_IRQAFFINITY:-false} || config_irqaffinity
+    ! ${RM_CONFIG_IRQAFFINITY:-false} || remove_irqaffinity
     ! ${INSTALL_CGROUPS:-false} || install_cgroups
     ! ${RM_INSTALL_CGROUPS:-false} || remove_cgroups
     ! ${DISABLE_GPU:-false} || disable_i915_graphics
