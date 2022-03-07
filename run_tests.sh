@@ -5,7 +5,7 @@ DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
 CGNAME=/rt
-GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')"
+glxinfo >&/dev/null && GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
 CORES="$(nproc --all)"
 
 if test -z "$IN_DOCKER"; then
