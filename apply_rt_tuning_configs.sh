@@ -100,6 +100,7 @@ confirm_changes() {
         ! ${CONFIG_NOHZ_FULL:-false} || echo "- Add nohz_full=${RT_CPUS} to kernel cmdline"
         ! ${RM_CONFIG_NOHZ_FULL:-false} || echo "- Remove nohz_full=${RT_CPUS} from kernel cmdline"
         ! ${INSTALL_CGROUPS:-false} || echo "- Mount legacy cgroups at boot & install cgroup-tools"
+        ! ${REMOVE_CGROUPS:-false} || echo "- Do not mount legacy cgroups at boot"
         ! ${DISABLE_GPU:-false} || echo "- Disable i915 graphics kernel module"
         ! ${ENABLE_GPU:-false} || echo "- Reenable i915 graphics kernel module"
         ! ${DISABLE_X:-false} || echo "- Disable X windows"
@@ -123,6 +124,7 @@ usage() {
 		  -z:  Configure 'nohz_full=' kernel command line option
 		  -Z:  Remove 'nohz_full=' kernel command line option
 		  -c:  Mount legacy cgroups at boot & install cgroup-tools
+		  -C:  Do not mount legacy cgroups at boot
 		  -g:  Disable i915 Intel graphics kernel module
 		  -G:  Reenable i915 Intel graphics kernel module
 		  -x:  Disable X windows
@@ -183,60 +185,56 @@ install_rt_kernel() {
     ${APT_GET} install -y linux-image-rt-amd64 linux-headers-rt-amd64
 }
 
-config_isolcpus() {
+config_kernel_cmdline() {
+    VAL="$1"
+    REGEX="${2:-$1}"
+    echo "Adding kernel cmdline arg '$VAL'" 1>&2
     GRUB_CMDLINE="$(source /etc/default/grub &&
                         echo $GRUB_CMDLINE_LINUX_DEFAULT)"
-    GRUB_CMDLINE_TEST="$(echo $GRUB_CMDLINE | sed 's/isolcpus=//')"
+    GRUB_CMDLINE_TEST="$(echo $GRUB_CMDLINE | sed 's/$REGEX//')"
     if test "$GRUB_CMDLINE" != "$GRUB_CMDLINE_TEST"; then
-        echo "Warning:  grub command line already has isolcpus=; doing nothing" 1>&2
+        echo "Warning:  grub command line matches '$REGEX'; doing nothing" 1>&2
         return
     fi
-    GRUB_CMDLINE+=" isolcpus=$RT_CPUS"
+    GRUB_CMDLINE+=" $VAL"
     ${SUDO} sed -i /etc/default/grub \
         -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
     UPDATE_GRUB=true
+}
+
+unconfig_kernel_cmdline() {
+    ARG="$1"
+    GLOB="${2:-$VAL}"
+    echo "Removing kernel cmdline arg '$ARG'" 1>&2
+    GRUB_CMDLINE_CUR="$(source /etc/default/grub &&
+                           echo $GRUB_CMDLINE_LINUX_DEFAULT)"
+    shopt -s extglob  # Enable extended glob matching
+    GRUB_CMDLINE="${GRUB_CMDLINE_CUR/${GLOB}/}"
+
+    if test "$GRUB_CMDLINE_CUR" = "$GRUB_CMDLINE"; then
+        echo "Warning:  No change to kernel command line" 1>&2
+    else
+        # Configure kernel cmdline args
+        ${SUDO} sed -i /etc/default/grub \
+            -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
+        UPDATE_GRUB=true
+    fi
+}
+
+config_isolcpus() {
+    config_kernel_cmdline isolcpus=$RT_CPUS isolcpus=
 }
 
 remove_isolcpus() {
-    GRUB_CMDLINE_CUR="$(source /etc/default/grub &&
-                           echo $GRUB_CMDLINE_LINUX_DEFAULT)"
-    shopt -s extglob  # Enable extended glob matching
-    GRUB_CMDLINE="${GRUB_CMDLINE_CUR/isolcpus=+([-0-9, ])/}"
-
-    if test "$GRUB_CMDLINE_CUR" != "$GRUB_CMDLINE"; then
-        # Configure kernel cmdline args
-        ${SUDO} sed -i /etc/default/grub \
-            -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
-        UPDATE_GRUB=true
-    fi
+    unconfig_kernel_cmdline isolcpus "isolcpus=+([-0-9, ])"
 }
 
 config_nohz_full() {
-    GRUB_CMDLINE="$(source /etc/default/grub &&
-                        echo $GRUB_CMDLINE_LINUX_DEFAULT)"
-    GRUB_CMDLINE_TEST="$(echo "$GRUB_CMDLINE" | sed 's/nohz_full=//')"
-    if test "$GRUB_CMDLINE" != "$GRUB_CMDLINE_TEST"; then
-        echo "Warning:  grub command line already has nohz_full=; doing nothing" 1>&2
-        return
-    fi
-    GRUB_CMDLINE+=" nohz_full=$RT_CPUS"
-    ${SUDO} sed -i /etc/default/grub \
-        -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
-    UPDATE_GRUB=true
+    config_kernel_cmdline nohz_full=$RT_CPUS nohz_full=
 }
 
 remove_nohz_full() {
-    GRUB_CMDLINE_CUR="$(source /etc/default/grub &&
-                           echo $GRUB_CMDLINE_LINUX_DEFAULT)"
-    shopt -s extglob  # Enable extended glob matching
-    GRUB_CMDLINE="${GRUB_CMDLINE_CUR/nohz_full=+([-0-9, ])/}"
-
-    if test "$GRUB_CMDLINE_CUR" != "$GRUB_CMDLINE"; then
-        # Configure kernel cmdline args
-        ${SUDO} sed -i /etc/default/grub \
-            -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
-        UPDATE_GRUB=true
-    fi
+    unconfig_kernel_cmdline nohz_full "nohz_full=+([-0-9, ])"
 }
 
 install_cgroups() {
@@ -244,19 +242,19 @@ install_cgroups() {
     ${SUDO} apt-get install -y cgroup-tools
     # Mount cgroups v1 hierarchy for libcgroup (libcgroup v2.0 supports cgroups
     # v2, not in Bullseye)
-    GRUB_CMDLINE="$(source /etc/default/grub &&
-                        echo $GRUB_CMDLINE_LINUX_DEFAULT)"
-    if $(echo $GRUB_CMDLINE | grep -q 'unified_cgroup_hierarchy'); then
-        echo "Warning:  cgroups already enabled in kernel cmdline" 1>&2
-        return
-    else
-        GRUB_CMDLINE+=" systemd.unified_cgroup_hierarchy=false"
-        GRUB_CMDLINE+=" systemd.legacy_systemd_cgroup_controller=false"
-        ${SUDO} sed -i /etc/default/grub \
-            -e "s/.*\(GRUB_CMDLINE_LINUX_DEFAULT\).*/\1=\"${GRUB_CMDLINE}\"/"
-        UPDATE_GRUB=true
-    fi
+    config_kernel_cmdline systemd.unified_cgroup_hierarchy=false \
+        systemd.unified_cgroup_hierarchy
+    config_kernel_cmdline systemd.legacy_systemd_cgroup_controller=false \
+        systemd.legacy_systemd_cgroup_controller
 }
+
+remove_cgroups() {
+    unconfig_kernel_cmdline systemd.unified_cgroup_hierarchy \
+        systemd.unified_cgroup_hierarchy=false
+    unconfig_kernel_cmdline systemd.legacy_systemd_cgroup_controller \
+        systemd.legacy_systemd_cgroup_controller=false
+}
+
 
 ###########################
 # Disable graphics
@@ -314,7 +312,7 @@ finalize() {
 ###########################
 
 if $CALLED_AS_SCRIPT; then
-    while getopts :dkiIzZgGxXch ARG; do
+    while getopts :dkiIzZcCgGxXh ARG; do
         case $ARG in
             d) INSTALL_DOCKER=true ;;
             k) INSTALL_RT_KERNEL=true; APT_GET_UPDATE=true ;;
@@ -323,6 +321,7 @@ if $CALLED_AS_SCRIPT; then
             z) CONFIG_NOHZ_FULL=true; CHECK_CPU=true ;;
             Z) RM_CONFIG_NOHZ_FULL=true ;;
             c) INSTALL_CGROUPS=true; APT_GET_UPDATE=true ;;
+            C) REMOVE_CGROUPS=true ;;
             g) DISABLE_GPU=true ;;
             G) ENABLE_GPU=true ;;
             x) DISABLE_X=true ;;
@@ -344,6 +343,7 @@ if $CALLED_AS_SCRIPT; then
     ! ${CONFIG_NOHZ_FULL:-false} || config_nohz_full
     ! ${RM_CONFIG_NOHZ_FULL:-false} || remove_nohz_full
     ! ${INSTALL_CGROUPS:-false} || install_cgroups
+    ! ${RM_INSTALL_CGROUPS:-false} || remove_cgroups
     ! ${DISABLE_GPU:-false} || disable_i915_graphics
     ! ${ENABLE_GPU:-false} || reenable_i915_graphics
     ! ${DISABLE_X:-false} || disable_x
