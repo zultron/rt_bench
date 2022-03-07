@@ -1,11 +1,12 @@
 #!/bin/bash -e
 
 THIS_DIR=$(readlink -f $(dirname $0))
-HIST_TMP_DIR=$THIS_DIR/tests/tmp
+DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
 CGNAME=/rt
 GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')"
+CORES="$(nproc --all)"
 
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
@@ -42,7 +43,7 @@ cleanup() {
     test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
     test -z "$MEM_TOP_PID" || pkill -P $MEM_TOP_PID || true
     pkill -P $$ || true
-    sudo chown -R $USER $HIST_TMP_DIR || true
+    sudo chown -R $USER $DATA_DIR || true
     exit
 }
 trap cleanup EXIT ERR INT
@@ -138,56 +139,50 @@ function test_cases() {
 		EOF
 }
 
-run_cyclictest() {
-    local DATA_DIR=$1
-    local DATA_FILE=$DATA_DIR/cyclictest_out.txt
-    local GPU_TOP=$DATA_DIR/gpu_top_out.txt
-    local CPU_TOP=$DATA_DIR/cpu_top_out.txt
-    local MEM_TOP=$DATA_DIR/mem_top_out.txt
-    ! $HAVE_I915 || { sudo intel_gpu_top -lo $GPU_TOP & G_TOP_PID=$!; }
-    mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
-    free -s 1 -c $DURATION > $MEM_TOP & MEM_TOP_PID=$!
-    if $CREATE_CPUSET; then
-
-        sudo env CGROUP_LOGLEVEL=DEBUG cgexec -g cpuset:/rt $CYCLICTEST -D$DURATION -m -Sp90 -i200 -h400 -q >$DATA_FILE
-    else
-        sudo $CYCLICTEST -D$DURATION -m -Sp90 -i200 -h400 -q >$DATA_FILE
-    fi
-    ! $HAVE_I915 || sudo killall intel_gpu_top || true
-    wait
-    # wait $C_TOP_PID $MEM_TOP_PID
-}
-
-
 html_header() {
+    local RT_CPUS_HTML GPU_ACCEL_HTML
+    test -z "$RT_CPUS" || RT_CPUS_HTML="<li>isolcpus=$RT_CPUS</li>"
+    $RUN_ONE || GPU_ACCEL_HTML="<li>GPU acceleration:  $GPU_ACCEL</li>"
     cat <<-EOF
 		<html>
 		  <head>
 		    <title>$1</title>
 		  </head>
 		  <body>
-
-		    <h1>$1</h1>
+		    <h1>Latency tests:  $DESCRIPTION</h1>
 		    <ul>
-		EOF
-	test -z "$DESC" || echo "    <li>$DESC</li>"
-    echo "    <li>Duration:  $DURATION seconds</li>"
-    echo "    <li>Number of CPUs:  $(nproc)</li>"
-	test -z "$RT_CPUS" || echo "    <li>isolcpus=$RT_CPUS</li>"
-    echo "    <li>Create 'cpuset:/rt' cgroup:  $CREATE_CPUSET</li>"
-    $RUN_ONE || echo "    <li>GPU acceleration:  $GPU_ACCEL</li>"
-    cat <<-EOF
+		      <li>Date:  $(date -R)</li>
+		      <li>cyclictest version:  $($CYCLICTEST --help | head -1)</li>
+		      <li>Test duration:  $DURATION seconds</li>
+		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
+		      <li>Create 'cpuset:$CGNAME' cgroup:  $CREATE_CPUSET</li>
+		      <li>Number of CPUs:  $CORES</li>
+		      $RT_CPUS_HTML
+		      $GPU_ACCEL_HTML
 		    </ul>
 		EOF
 }
 
-html_plot() {
+html_test_header() {
+    local TITLE="$1"
+    local CT_ARGS="$2"
+    local GLMARK2_ARGS="$3"
+    local DESC_HTML
+	test -z "$DESC" || DESC_HTML="<li>$DESC</li>"
+    test -z "$GLMARK2_ARGS" || GLM_HTML="<li>glmark2 command:  glmark2 $GLMARK2_ARGS</li>"
     cat <<-EOF
 
-		    <h2>$1</h2>
-		    <img src="$(basename $2)"/>
+		    <h2>$TITLE</h2>
+		    <ul>
+		      $DESC_HTML
+		      <li>Command:  cyclictest $CT_ARGS</li>
+		      $GLM_HTML
 		EOF
+}
 
+html_test_plot() {
+	echo "    </ul>"
+	echo "    <img src=\"$1\"/>"
 }
 
 html_footer() {
@@ -199,14 +194,13 @@ html_footer() {
 }
 
 mk_hist() {
+    local TEST_DIR=$1; shift
     local PLOT_DATA=$1; shift
     local PLOT_FILE=$1; shift
     local HTML_FILE=$1; shift
     local TITLE="$*"
-    local CORES=$(nproc)
     local i
-    local DATA_DIR=$(dirname $PLOT_DATA)
-    local PLOTCMD=$DATA_DIR/plotcmd
+    local PLOTCMD=$TEST_DIR/plotcmd.gv
 
     # Plot header
     cat >$PLOTCMD <<-EOF
@@ -218,7 +212,7 @@ mk_hist() {
 
     for i in `seq 1 $CORES`; do
         # Clean up data
-        local CPU_PLOT_DATA=$DATA_DIR/histogram$i
+        local CPU_PLOT_DATA=$TEST_DIR/histogram$i
         grep -v -e "^#" -e "^$" $PLOT_DATA | tr " " "\t" | cut -f1,$((i+1)) \
             >$CPU_PLOT_DATA
         local MAX=$(awk "/Max Latencies/ {print \$$((i+3))}" $PLOT_DATA)
@@ -254,43 +248,72 @@ mk_hist() {
 
     # Execute plot command
     cat $PLOTCMD | gnuplot -persist
-    html_plot "$TITLE" $PLOT_FILE >> $HTML_FILE
+    html_test_plot $(realpath --relative-to=$DATA_DIR  $PLOT_FILE) >> $HTML_FILE
 }
 
 test_sequential() {
     check_utils
 
-    local i=1
-    PLOT_DIR=tests; mkdir -p $PLOT_DIR
-    HTML_FILE=$PLOT_DIR/tests.html
+    local i=0
+    rm -rf $DATA_DIR; mkdir -p $DATA_DIR
+    HTML_FILE=$DATA_DIR/tests.html
     html_header "Latency tests:  $(date -R)" > $HTML_FILE
     for CASE in $(test_cases); do
+        i=$((++i))
         local IX=$(printf "%02d" $i)
-        local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
-        local PLOT_FILE="$PLOT_DIR/plot-${IX}.png"
+        local TEST_DIR=$DATA_DIR/$IX; mkdir -p $TEST_DIR
+        local PLOT_FILE="$TEST_DIR/plot-${IX}.png"
         local TITLE="glmark2 $CASE"
         test "$CASE" != no-gpu-stress || TITLE="No GPU stress"
-        echo $i $TITLE
-        rm -rf $DATA_DIR; mkdir -p $DATA_DIR
-        G_PID=
+        local DATA_FILE=$TEST_DIR/cyclictest_out.txt
+        local GPU_TOP=$TEST_DIR/gpu_top_out.txt
+        local CPU_TOP=$TEST_DIR/cpu_top_out.txt
+        local MEM_TOP=$TEST_DIR/mem_top_out.txt
+        local GLMARK2_OUT=$TEST_DIR/glmark2_out.txt
+        local CT_ARGS="-D$DURATION -m -p90 -i200 -h400 -q"
+        CT_ARGS+=" -t $CORES -a0-$(($CORES-1))"
+        local GLMARK2_TEST_ARGS="${GLMARK2_ARGS} -b $CASE:duration=$DURATION"
+        test $CASE != no-gpu-stress || GLMARK2_TEST_ARGS=""
+
+        # Print info to console & HTML file
+        echo
+        echo "****************"
+        echo "Test #$i:  $TITLE"
+        echo "Command:  $CYCLICTEST $CT_ARGS"
+        echo "Output:  $DATA_FILE"
+        test -z "$GLMARK2_TEST_ARGS" || echo "glmark2 command:  $GLMARK2 $GLMARK2_TEST_ARGS"
+        html_test_header "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" >> $HTML_FILE
+
+        # Run glmark2, if applicable
         if test $CASE != no-gpu-stress; then
-            ${GLMARK2} ${GLMARK2_ARGS} -b $CASE:duration=$DURATION & G_PID=$!
+            ${GLMARK2} ${GLMARK2_TEST_ARGS} > $GLMARK2_OUT & G_PID=$!
         fi
-        time run_cyclictest $DATA_DIR
+
+        # Run Intel GPU top, if applicable
+        ! $HAVE_I915 || { sudo intel_gpu_top -lo - > $GPU_TOP & G_TOP_PID=$!; }
+
+        # Record processor & memory stats during run
+        mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
+        free -s 1 -c $DURATION > $MEM_TOP & MEM_TOP_PID=$!
+
+        # Run cyclictest
+        time sudo $CYCLICTEST $CT_ARGS >$DATA_FILE
         echo "  cyclictest done"
-        if test $CASE != no-gpu-stress; then
-            kill $G_PID
-            wait
-        fi
-        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $HTML_FILE "$TITLE"
-        i=$((i+1))
+
+        # Shut down background processes
+        ! $HAVE_I915 || sudo killall intel_gpu_top || true
+        wait
+
+        # Generate chart
+        echo "  generating chart"
+        mk_hist $TEST_DIR $DATA_FILE $PLOT_FILE $HTML_FILE "$TITLE"
     done
     html_footer >> $HTML_FILE
 }
 
 usage() {
     cat 1>&2 <<-EOF
-		Usage:  $0 [arg ...]
+		Usage:  $0 [arg ...] [Description]
 		  -d SECS:  Duration of test in seconds (default 20)
 		  -c:       Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
 		  -1 DESC:  Run one test without glmark2 GPU loading; add description
@@ -317,6 +340,7 @@ while getopts :d:c1:h ARG; do
     esac
 done
 shift $(($OPTIND - 1))
+DESCRIPTION="$*"
 
 setup_cgroup
 test_sequential
