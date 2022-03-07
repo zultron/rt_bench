@@ -5,6 +5,7 @@ HIST_TMP_DIR=$THIS_DIR/tests/tmp
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
 CGNAME=/rt
+GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')"
 
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
@@ -37,7 +38,7 @@ NEEDED_UTILS=(
 
 cleanup() {
     test -z "$G_PID" || pkill -P $G_PID || true
-    test -z "$G_TOP_PID" || pkill -P $G_TOP_PID || true
+    test -z "$G_TOP_PID" || sudo pkill -P $G_TOP_PID || true
     test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
     test -z "$MEM_TOP_PID" || pkill -P $MEM_TOP_PID || true
     pkill -P $$ || true
@@ -88,17 +89,15 @@ function setup_cgroup() {
 function test_cases() {
     if test -z "$DISPLAY"; then
         echo "Note:  DISPLAY unset; not running GPU stress tests" >&2
-        echo no-gpu-stress
-        return
+        RUN_ONE=true
     fi
-    GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')"
     if test "$GPU_ACCEL" = no; then
         echo "Note:  DISPLAY=${DISPLAY} not accelerated; not running GPU stress tests" >&2
-        echo no-gpu-stress
-        return
+        RUN_ONE=true
     fi
-    if $EXTERNAL_LOAD; then
-        echo external-load
+    if $RUN_ONE; then
+        echo no-gpu-stress
+        DESC="${DESC:-No GPU load}"
         return
     fi
     cat <<-EOF
@@ -145,15 +144,18 @@ run_cyclictest() {
     local GPU_TOP=$DATA_DIR/gpu_top_out.txt
     local CPU_TOP=$DATA_DIR/cpu_top_out.txt
     local MEM_TOP=$DATA_DIR/mem_top_out.txt
-    NUM_CYCLES=100000  # OSADL:  100000000
     ! $HAVE_I915 || { sudo intel_gpu_top -lo $GPU_TOP & G_TOP_PID=$!; }
-    mpstat -P ALL 1 25 > $CPU_TOP & C_TOP_PID=$!
-    free -s 1 -c 25 > $MEM_TOP & MEM_TOP_PID=$!
-    sudo $CYCLICTEST -l$NUM_CYCLES -m -Sp90 -i200 -h400 -q >$DATA_FILE
-    kill $C_TOP_PID || true
-    kill $MEM_TOP_PID || true
-    $HAVE_I915 && sudo killall intel_gpu_top || true
-    $HAVE_I915 && sudo chown $USER $GPU_TOP || true
+    mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
+    free -s 1 -c $DURATION > $MEM_TOP & MEM_TOP_PID=$!
+    if $CREATE_CPUSET; then
+
+        sudo env CGROUP_LOGLEVEL=DEBUG cgexec -g cpuset:/rt $CYCLICTEST -D$DURATION -m -Sp90 -i200 -h400 -q >$DATA_FILE
+    else
+        sudo $CYCLICTEST -D$DURATION -m -Sp90 -i200 -h400 -q >$DATA_FILE
+    fi
+    ! $HAVE_I915 || sudo killall intel_gpu_top || true
+    wait
+    # wait $C_TOP_PID $MEM_TOP_PID
 }
 
 
@@ -166,6 +168,16 @@ html_header() {
 		  <body>
 
 		    <h1>$1</h1>
+		    <ul>
+		EOF
+	test -z "$DESC" || echo "    <li>$DESC</li>"
+    echo "    <li>Duration:  $DURATION seconds</li>"
+    echo "    <li>Number of CPUs:  $(nproc)</li>"
+	test -z "$RT_CPUS" || echo "    <li>isolcpus=$RT_CPUS</li>"
+    echo "    <li>Create 'cpuset:/rt' cgroup:  $CREATE_CPUSET</li>"
+    $RUN_ONE || echo "    <li>GPU acceleration:  $GPU_ACCEL</li>"
+    cat <<-EOF
+		    </ul>
 		EOF
 }
 
@@ -257,19 +269,20 @@ test_sequential() {
         local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
         local PLOT_FILE="$PLOT_DIR/plot-${IX}.png"
         local TITLE="glmark2 $CASE"
+        test "$CASE" != no-gpu-stress || TITLE="No GPU stress"
         echo $i $TITLE
         rm -rf $DATA_DIR; mkdir -p $DATA_DIR
         G_PID=
-        if test $CASE != no-gpu-stress -a $CASE != external-load; then
-            ${GLMARK2} ${GLMARK2_ARGS} -b $CASE:duration=25.0 & G_PID=$!
+        if test $CASE != no-gpu-stress; then
+            ${GLMARK2} ${GLMARK2_ARGS} -b $CASE:duration=$DURATION & G_PID=$!
         fi
         time run_cyclictest $DATA_DIR
         echo "  cyclictest done"
-        if test $CASE != no-gpu-stress -a $CASE != external-load; then
+        if test $CASE != no-gpu-stress; then
             kill $G_PID
             wait
         fi
-        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $HTML_FILE $TITLE
+        mk_hist $DATA_DIR/cyclictest_out.txt $PLOT_FILE $HTML_FILE "$TITLE"
         i=$((i+1))
     done
     html_footer >> $HTML_FILE
@@ -278,9 +291,10 @@ test_sequential() {
 usage() {
     cat 1>&2 <<-EOF
 		Usage:  $0 [arg ...]
-		  -c:  Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
-		  -x:  External GPU load; run one test without glmark2 GPU loading
-		  -h:  This usage message
+		  -d SECS:  Duration of test in seconds (default 20)
+		  -c:       Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
+		  -1 DESC:  Run one test without glmark2 GPU loading; add description
+		  -h:       This usage message
 		EOF
     if test -z "$1"; then
         exit 0
@@ -290,12 +304,14 @@ usage() {
     fi
 }
 
+DURATION=20
 CREATE_CPUSET=false
-EXTERNAL_LOAD=false
-while getopts :cxh ARG; do
+RUN_ONE=false
+while getopts :d:c1:h ARG; do
     case $ARG in
+        d) DURATION=$OPTARG ;;
         c) CREATE_CPUSET=true ;;
-        x) EXTERNAL_LOAD=true ;;
+        1) RUN_ONE=true; DESC="$OPTARG" ;;
         h) usage ;;
         *) usage "Unknown option '-$ARG'" ;;
     esac
