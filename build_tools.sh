@@ -42,7 +42,8 @@ OTHER_UTILS=(  # Executables used in run_tests.sh
     mesa-utils  # for glxinfo
     kmod  # for lsmod
     procps  # for free, pkill
-    psmisc # for killall
+    psmisc  # for killall
+    cgroup-tools  # for cgcreate, cgset, etc.
 )
 
 set_vars() {

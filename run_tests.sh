@@ -3,6 +3,8 @@
 THIS_DIR=$(readlink -f $(dirname $0))
 HIST_TMP_DIR=$THIS_DIR/tests/tmp
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
+RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
+CGNAME=/rt
 
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
@@ -53,6 +55,36 @@ function check_utils() {
     done
 }
 
+function setup_cgroup() {
+    if ! $CREATE_CPUSET; then
+        echo "Not setting up isolcpus cpuset cgroup" 1>&2
+        return
+    fi
+    echo "Setting up cgroup cpuset:$CGNAME with CPUs $RT_CPUS" 1>&2
+    test -n "$RT_CPUS" || \
+        usage "Option -r set, but no kernel command line 'isolcpus='"
+    if test "$(lscgroup cpuset:$CGNAME)" != ""; then
+        echo "    cgroup cpuset:$CGNAME already exists" 1>&2
+    else
+        echo "    Creating cgroup cpuset:$CGNAME" 1>&2
+        sudo cgcreate -g cpuset:$CGNAME
+    fi
+    CPUSET=$(cgget -nvr cpuset.cpus $CGNAME)
+    if test -n "$(cgget -nvr cpuset.cpus $CGNAME)"; then
+        echo "    cgroup cpuset:$CGNAME already contains CPUs $CPUSET" 1>&2
+        return
+    fi
+    echo "    Adding CPUs $RT_CPUS to cgroup cpuset:$CGNAME" 1>&2
+    sudo cgset -r cpuset.cpus=$RT_CPUS $CGNAME
+    CPUSET=$(cgget -nvr cpuset.cpus $CGNAME)
+    if test -n "$CPUSET"; then
+        echo "    Success:  cgroup cpuset:$CGNAME CPUs $CPUSET" 1>&2
+    else
+        echo "Failed to create cgroup cpuset:$CGNAME with CPUs $RT_CPUS" 1>&2
+        exit 1
+    fi
+}
+
 function test_cases() {
     if test -z "$DISPLAY"; then
         echo "Note:  DISPLAY unset; not running GPU stress tests" >&2
@@ -65,7 +97,7 @@ function test_cases() {
         echo no-gpu-stress
         return
     fi
-    if test -n "$1"; then
+    if $EXTERNAL_LOAD; then
         echo external-load
         return
     fi
@@ -216,16 +248,11 @@ mk_hist() {
 test_sequential() {
     check_utils
 
-    if test -n "$1"; then
-        # External load
-        local i=$(($(test_cases | wc -l) + 1))
-    else
-        local i=1
-    fi
+    local i=1
     PLOT_DIR=tests; mkdir -p $PLOT_DIR
     HTML_FILE=$PLOT_DIR/tests.html
     html_header "Latency tests:  $(date -R)" > $HTML_FILE
-    for CASE in $(test_cases $1); do
+    for CASE in $(test_cases); do
         local IX=$(printf "%02d" $i)
         local DATA_DIR=$HIST_TMP_DIR/$IX; mkdir -p $DATA_DIR
         local PLOT_FILE="$PLOT_DIR/plot-${IX}.png"
@@ -248,4 +275,32 @@ test_sequential() {
     html_footer >> $HTML_FILE
 }
 
-test_sequential $1
+usage() {
+    cat 1>&2 <<-EOF
+		Usage:  $0 [arg ...]
+		  -c:  Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
+		  -x:  External GPU load; run one test without glmark2 GPU loading
+		  -h:  This usage message
+		EOF
+    if test -z "$1"; then
+        exit 0
+    else
+        echo "$1" 1>&2
+        exit 1
+    fi
+}
+
+CREATE_CPUSET=false
+EXTERNAL_LOAD=false
+while getopts :cxh ARG; do
+    case $ARG in
+        c) CREATE_CPUSET=true ;;
+        x) EXTERNAL_LOAD=true ;;
+        h) usage ;;
+        *) usage "Unknown option '-$ARG'" ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+setup_cgroup
+test_sequential
