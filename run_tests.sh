@@ -164,15 +164,16 @@ html_header() {
 }
 
 html_test_header() {
-    local TITLE="$1"
-    local CT_ARGS="$2"
-    local GLMARK2_ARGS="$3"
+    local IX="$1"
+    local TITLE="$2"
+    local CT_ARGS="$3"
+    local GLMARK2_ARGS="$4"
     local DESC_HTML
 	test -z "$DESC" || DESC_HTML="<li>$DESC</li>"
     test -z "$GLMARK2_ARGS" || GLM_HTML="<li>glmark2 command:  glmark2 $GLMARK2_ARGS</li>"
     cat <<-EOF
 
-		    <h2>$TITLE</h2>
+		    <h2>Test #${IX}:  ${TITLE}</h2>
 		    <ul>
 		      $DESC_HTML
 		      <li>Command:  cyclictest $CT_ARGS</li>
@@ -282,7 +283,7 @@ test_sequential() {
         echo "Command:  $CYCLICTEST $CT_ARGS"
         echo "Output:  $DATA_FILE"
         test -z "$GLMARK2_TEST_ARGS" || echo "glmark2 command:  $GLMARK2 $GLMARK2_TEST_ARGS"
-        html_test_header "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" >> $HTML_FILE
+        html_test_header $IX "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" >> $HTML_FILE
 
         # Run glmark2, if applicable
         if test $CASE != no-gpu-stress; then
