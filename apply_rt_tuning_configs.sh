@@ -47,42 +47,6 @@ check_cpu() {
             exit 1
             ;;
     esac
-
-    GRUB_CMDLINE=""
-    # Set isolcpus= if RT_CPUS is defined
-    test -z "$RT_CPUS" || GRUB_CMDLINE+=" isolcpus=$RT_CPUS"
-    # Set nohz_full= if RT_CPUS is defined
-    test -z "$RT_CPUS" || GRUB_CMDLINE+=" nohz_full=$RT_CPUS"
-    # Mount cgroups v1 hierarchy for libcgroup (libcgroup v2.0 supports cgroups
-    # v2, not in Bullseye)
-    GRUB_CMDLINE+=" systemd.unified_cgroup_hierarchy=false"
-    GRUB_CMDLINE+=" systemd.legacy_systemd_cgroup_controller=false"
-
-    # Motherboard information
-    DMI_DATA="$(cat /sys/devices/virtual/dmi/id/modalias)"
-
-    # Non-free firmware
-    NEED_NON_FREE_FW=false
-
-    case "$DMI_DATA" in
-        *:pnMXE1500:*)
-            # ADLink Tech MXE-1500 Series; Intel(R) Celeron(R) CPU N3160 @ 1.60GHz
-            ETHERCAT_NIC=${ETHERCAT_NIC:-eno1}  # Left-hand port on rear
-            ;;
-        *:pnNUC8i5BEK:*)
-            # Intel NUC 815BEK
-            ETHERCAT_NIC=${ETHERCAT_NIC:-eno1}
-            ;;
-        *:pnMXE210:*)
-            # ADLink Tech MXE-210 Series
-            ETHERCAT_NIC=${ETHERCAT_NIC:-eno2}  # Right-hand port on front
-            NEED_NON_FREE_FW=true  # i915 drivers
-            ;;
-        *)
-            echo "DMI data '$DMI_DATA' unknown; please add to $BASH_SOURCE.  Exiting." >&2
-            exit 1
-            ;;
-    esac
 }
 
 confirm_changes() {
