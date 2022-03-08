@@ -277,9 +277,8 @@ finalize() {
     set +x
     cat >&2 <<-EOF
 
-		*** Install complete!
-		*** You will probably have to reboot your machine
-		***   in order for changes to take effect.
+		*** Success
+		*** Reboot the machine for changes to take effect
 	EOF
     exit 0
 }
