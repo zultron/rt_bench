@@ -36,16 +36,28 @@ BUILD_DEPS_GLMARK2=(
     wayland-protocols
 )
 BUILD_DEPS_IGT_GPU_TOOLS=(
-	libunwind-dev
-	libgsl-dev
-	libasound2-dev
-	libxmlrpc-core-c3-dev
-	libjson-c-dev
-	libcurl4-openssl-dev
-	python-docutils
-	valgrind
-	peg
-	libdrm-intel1
+    # https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/blob/d6f93088/Dockerfile.build-debian
+    libunwind-dev
+    libgsl-dev
+    libasound2-dev
+    libxmlrpc-core-c3-dev
+    libjson-c-dev
+    libcurl4-openssl-dev
+    python3-docutils  # python-docutils, in above link
+    valgrind
+    peg
+    libdrm-intel1
+    # meson complains run-time deps missing
+    libpciaccess-dev
+    libkmod-dev
+    libprocps-dev
+    cmake
+    libdw-dev
+    libpixman-1-dev
+    libcairo2-dev
+    # More meson deps
+    flex
+    bison
 )
 OTHER_UTILS=(  # Executables used in run_tests.sh
     intel-gpu-tools  # for intel_gpu_top
