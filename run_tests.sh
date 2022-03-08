@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
-INVOCATION="$*"
+INVOCATION=( "${@}" ); INVOCATION=( "${INVOCATION[@]/#/\"}" );
+INVOCATION=( "\"$0\"" "${INVOCATION[@]/%/\"}" );
 THIS_DIR=$(readlink -f $(dirname $0))
 DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
@@ -150,7 +151,7 @@ html_header() {
 		    <h1>Latency tests:  $DESCRIPTION</h1>
 		    <ul>
 		      <li>Date:  $(date -R)</li>
-		      <li>Invocation:  $INVOCATION</li>
+		      <li>Invocation:  ${INVOCATION[@]}</li>
 		      <li>cyclictest version:  $($CYCLICTEST --help | head -1)</li>
 		      <li>Test duration:  $DURATION seconds</li>
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
