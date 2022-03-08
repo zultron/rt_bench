@@ -35,6 +35,18 @@ BUILD_DEPS_GLMARK2=(
     python3
     wayland-protocols
 )
+BUILD_DEPS_IGT_GPU_TOOLS=(
+	libunwind-dev
+	libgsl-dev
+	libasound2-dev
+	libxmlrpc-core-c3-dev
+	libjson-c-dev
+	libcurl4-openssl-dev
+	python-docutils
+	valgrind
+	peg
+	libdrm-intel1
+)
 OTHER_UTILS=(  # Executables used in run_tests.sh
     intel-gpu-tools  # for intel_gpu_top
     sysstat  # for mpstat
@@ -124,6 +136,21 @@ build_glmark2() {
     fi
 }
 
+build_igt_gpu_tools() {
+    INSTALL=${1:-false}
+    ! $INSTALL || PREFIX=--prefix=/usr
+    set_vars
+    install_build_deps "${BUILD_DEPS_IGT_GPU_TOOLS[@]}"
+    git_clone_and_cd https://gitlab.freedesktop.org/drm/igt-gpu-tools.git
+    echo "Building igt-gpu-tools"
+    ${DO} meson build $PREFIX
+    ${DO} ninja -C build
+    if $INSTALL; then
+        echo "Installing igt-gpu-tools"
+        ${SUDO} ninja -C build install
+    fi
+}
+
 install_other_tools() {
     echo "Installing other tools"
     install_conditionally "${OTHER_UTILS[@]}"
@@ -133,6 +160,7 @@ if $CALLED_AS_SCRIPT; then
     test "$1" = install && INSTALL=true || INSTALL=false
     build_rt_tests $INSTALL
     build_glmark2 $INSTALL
+    build_igt_gpu_tools $INSTALL
     install_other_tools
     echo "Completed successfully"
 fi
