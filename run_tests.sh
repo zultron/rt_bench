@@ -228,8 +228,8 @@ mk_hist() {
 
         cat >>$PLOTCMD <<-EOF
 			graphnum = $i
-			set tmargin at screen (top_border - (graphnum-1) * graph_top_to_top)
-			set bmargin at screen (top_border - (graphnum-1) * graph_top_to_top - graph_height)
+			set tmargin at screen (top_border - (graphnum-1) * graph_dist)
+			set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
 			set xrange [0:400]
 			set logscale y
 			set ytics font ",8"
