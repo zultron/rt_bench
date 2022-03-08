@@ -157,6 +157,7 @@ html_header() {
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
 		      <li>Create 'cpuset:$CGNAME' cgroup:  $CREATE_CPUSET</li>
 		      <li>Number of CPUs:  $CORES</li>
+		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
 		      $RT_CPUS_HTML
 		      $GPU_ACCEL_HTML
 		    </ul>
