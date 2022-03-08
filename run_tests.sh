@@ -24,15 +24,19 @@ if test -z "$IN_DOCKER"; then
     # Find cyclictest
     CYCLICTEST=$THIS_DIR/build/rt-tests/cyclictest
     test -x $CYCLICTEST || CYCLICTEST=cyclictest
+    # Find intel_gpu_top
+    INTEL_GPU_TOP=$THIS_DIR/build/igt-gpu-tools/build/tools/intel_gpu_top
+    test -x $INTEL_GPU_TOP || INTEL_GPU_TOP=intel_gpu_top
 else
     GLMARK2=glmark2
     CYCLICTEST=cyclictest
+    INTEL_GPU_TOP=intel_gpu_top
 fi
 
 NEEDED_UTILS=(
     $GLMARK2
     $CYCLICTEST
-    intel_gpu_top
+    $INTEL_GPU_TOP
     mpstat
     gnuplot
     glxinfo
@@ -299,7 +303,7 @@ test_sequential() {
         fi
 
         # Run Intel GPU top, if applicable
-        ! $HAVE_I915 || { sudo intel_gpu_top -o - > $GPU_TOP & G_TOP_PID=$!; }
+        ! $HAVE_I915 || { sudo $INTEL_GPU_TOP -o - > $GPU_TOP & G_TOP_PID=$!; }
 
         # Record processor & memory stats during run
         mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
