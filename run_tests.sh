@@ -207,6 +207,12 @@ mk_hist() {
 		set output "$PLOT_FILE"
 		set multiplot layout $CORES, 1 title "Latency histogram:  $TITLE" font ",14"
 		unset xtics
+		numcpus = $CORES
+		top_border = (1 - 0.1)
+		bot_border = 0.05
+		inter_border = 0.02
+		graph_height = (top_border - bot_border - inter_border * (numcpus - 1)) / numcpus
+		graph_dist = (top_border - bot_border) / numcpus
 		EOF
 
     for i in `seq 1 $CORES`; do
@@ -217,8 +223,9 @@ mk_hist() {
         local MAX=$(awk "/Max Latencies/ {print \$$((i+3))}" $PLOT_DATA)
 
         cat >>$PLOTCMD <<-EOF
-			set tmargin at screen (1 - (0.1 + ($i-1) * 0.2))
-			set bmargin at screen (1 - (0.08 + $i * 0.2))
+			graphnum = $i
+			set tmargin at screen (top_border - (graphnum-1) * graph_top_to_top)
+			set bmargin at screen (top_border - (graphnum-1) * graph_top_to_top - graph_height)
 			set xrange [0:400]
 			set logscale y
 			set ytics font ",8"
