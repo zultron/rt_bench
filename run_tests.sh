@@ -288,7 +288,7 @@ test_sequential() {
         fi
 
         # Run Intel GPU top, if applicable
-        ! $HAVE_I915 || { sudo intel_gpu_top -lo - > $GPU_TOP & G_TOP_PID=$!; }
+        ! $HAVE_I915 || { sudo intel_gpu_top -o - > $GPU_TOP & G_TOP_PID=$!; }
 
         # Record processor & memory stats during run
         mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
