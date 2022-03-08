@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+INVOCATION="$*"
 THIS_DIR=$(readlink -f $(dirname $0))
 DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
@@ -43,10 +44,8 @@ cleanup() {
     test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
     test -z "$MEM_TOP_PID" || pkill -P $MEM_TOP_PID || true
     pkill -P $$ || true
-    sudo chown -R $USER $DATA_DIR || true
     exit
 }
-trap cleanup EXIT ERR INT
 
 function check_utils() {
     for UTIL in "${NEEDED_UTILS[@]}"; do
@@ -151,6 +150,7 @@ html_header() {
 		    <h1>Latency tests:  $DESCRIPTION</h1>
 		    <ul>
 		      <li>Date:  $(date -R)</li>
+		      <li>Invocation:  $INVOCATION</li>
 		      <li>cyclictest version:  $($CYCLICTEST --help | head -1)</li>
 		      <li>Test duration:  $DURATION seconds</li>
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
@@ -342,4 +342,5 @@ DESCRIPTION="$*"
 
 setup_cgroup
 check_utils
+trap cleanup EXIT ERR INT
 test_sequential
