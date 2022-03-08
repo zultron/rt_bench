@@ -13,6 +13,9 @@ CORES="$(nproc --all)"
 CPU="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
     /proc/cpuinfo)"
 
+# Determine RT CPUs and GPU info
+source $(dirname $BASH_SOURCE)/check_cpu.sh
+
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
     GLMARK2=$THIS_DIR/build/glmark2/build/src/glmark2
@@ -268,6 +271,8 @@ mk_hist() {
 test_sequential() {
     test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
     mkdir -p $DATA_DIR
+    check_cpu
+    ! $INTEL_GPU_TOP_HANGS || echo "Not running intel_gpu_top" 1>&2
     local HTML_FILE=$DATA_DIR/tests.html
     local i=0
     html_header "Latency tests:  $(date -R)" > $HTML_FILE
@@ -303,7 +308,8 @@ test_sequential() {
         fi
 
         # Run Intel GPU top, if applicable
-        ! $HAVE_I915 || { sudo $INTEL_GPU_TOP -o - > $GPU_TOP & G_TOP_PID=$!; }
+        ! $HAVE_I915 && $INTEL_GPU_TOP_HANGS \
+            || { sudo $INTEL_GPU_TOP -o - > $GPU_TOP & G_TOP_PID=$!; }
 
         # Record processor & memory stats during run
         mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
@@ -357,7 +363,7 @@ done
 shift $(($OPTIND - 1))
 DESCRIPTION="$*"
 
-setup_cgroup
+# setup_cgroup
 check_utils
 trap cleanup EXIT ERR INT
 test_sequential
