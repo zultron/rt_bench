@@ -24,11 +24,25 @@ script in this project.
 
 ## Running the tests
 
-Run the tests with the script from this project.  If the X display is
-running, then the basic `cyclictest` run will be repeated with a
-series of GPU stress tests.
+Run the tests with the script from this project.  Print basic usage:
 
-    ./run_tests.sh
+    ./run_tests.sh -h
+
+The script always runs the basic `cyclictest` first.  If the X display
+is running (and no `-1` arg), the `cyclictest` run will be repeated
+while running a series of GPU stress tests.
+
+By default, the script writes output to the `tests` directory.  Each
+run writes periodic data on CPU, GPU and memory into files within
+subdirectories named `01`, `02` etc.
+
+While the tests are running, run the following for a basic sanity
+check that `cyclictest` is running as intended.
+
+    ps -Lo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,comm -C cyclictest
+
+One copy of `cyclictest` should be running with one thread for each
+CPU, and with elevated `RTPRIO` 90.
 
 ## Apply configurations that may affect RT
 
@@ -75,3 +89,8 @@ Run the container:
     ./docker/rt_bench
 
 [rocker]:  https://github.com/zultron/rocker
+
+## Related links
+
+https://www.suse.com/c/cpu-isolation-nohz_full-part-3/
+https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html
