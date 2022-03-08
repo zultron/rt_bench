@@ -98,7 +98,6 @@ function test_cases() {
     fi
     if $RUN_ONE; then
         echo no-gpu-stress
-        DESC="${DESC:-No GPU load}"
         return
     fi
     cat <<-EOF
@@ -168,14 +167,11 @@ html_test_header() {
     local TITLE="$2"
     local CT_ARGS="$3"
     local GLMARK2_ARGS="$4"
-    local DESC_HTML
-	test -z "$DESC" || DESC_HTML="<li>$DESC</li>"
     test -z "$GLMARK2_ARGS" || GLM_HTML="<li>glmark2 command:  glmark2 $GLMARK2_ARGS</li>"
     cat <<-EOF
 
 		    <h2>Test #${IX}:  ${TITLE}</h2>
 		    <ul>
-		      $DESC_HTML
 		      <li>Command:  cyclictest $CT_ARGS</li>
 		      $GLM_HTML
 		EOF
@@ -253,11 +249,10 @@ mk_hist() {
 }
 
 test_sequential() {
-    check_utils
-
+    test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
+    mkdir -p $DATA_DIR
+    local HTML_FILE=$DATA_DIR/tests.html
     local i=0
-    rm -rf $DATA_DIR; mkdir -p $DATA_DIR
-    HTML_FILE=$DATA_DIR/tests.html
     html_header "Latency tests:  $(date -R)" > $HTML_FILE
     for CASE in $(test_cases); do
         i=$((++i))
@@ -316,8 +311,9 @@ usage() {
     cat 1>&2 <<-EOF
 		Usage:  $0 [arg ...] [Description]
 		  -d SECS:  Duration of test in seconds (default 20)
+		  -o PATH:  Location of output dir (default $DATA_DIR)
 		  -c:       Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
-		  -1 DESC:  Run one test without glmark2 GPU loading; add description
+		  -1:       Run only one test without glmark2 GPU loading
 		  -h:       This usage message
 		EOF
     if test -z "$1"; then
@@ -331,11 +327,12 @@ usage() {
 DURATION=20
 CREATE_CPUSET=false
 RUN_ONE=false
-while getopts :d:c1:h ARG; do
+while getopts :d:o:c1h ARG; do
     case $ARG in
         d) DURATION=$OPTARG ;;
+        o) DATA_DIR=$OPTARG ;;
         c) CREATE_CPUSET=true ;;
-        1) RUN_ONE=true; DESC="$OPTARG" ;;
+        1) RUN_ONE=true ;;
         h) usage ;;
         *) usage "Unknown option '-$ARG'" ;;
     esac
@@ -344,4 +341,5 @@ shift $(($OPTIND - 1))
 DESCRIPTION="$*"
 
 setup_cgroup
+check_utils
 test_sequential
