@@ -291,6 +291,7 @@ finalize() {
 ###########################
 
 if $CALLED_AS_SCRIPT; then
+    test -n "${*}" || usage
     while getopts :dkiIzZqQcCgGxXh ARG; do
         case $ARG in
             d) INSTALL_DOCKER=true ;;
