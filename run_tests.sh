@@ -7,8 +7,11 @@ DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
 CGNAME=/rt
-glxinfo >&/dev/null && GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
+glxinfo >&/dev/null && \
+    GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
 CORES="$(nproc --all)"
+CPU="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
+    /proc/cpuinfo)"
 
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
@@ -156,6 +159,7 @@ html_header() {
 		      <li>Test duration:  $DURATION seconds</li>
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
 		      <li>Create 'cpuset:$CGNAME' cgroup:  $CREATE_CPUSET</li>
+		      <li>CPU:  $CPU</li>
 		      <li>Number of CPUs:  $CORES</li>
 		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
 		      $RT_CPUS_HTML
