@@ -5,7 +5,6 @@ INVOCATION=( "\"$0\"" "${INVOCATION[@]/%/\"}" );
 THIS_DIR=$(readlink -f $(dirname $0))
 DATA_DIR=$THIS_DIR/tests
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
-RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
 CGNAME=/rt
 glxinfo >&/dev/null && \
     GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
@@ -269,9 +268,12 @@ mk_hist() {
 }
 
 test_sequential() {
+    if test -z "$RT_CPUS"; then
+        echo "CPU '$CPU' unknown; please add to $BASH_SOURCE.  Exiting." >&2
+        exit 1
+    fi
     test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
     mkdir -p $DATA_DIR
-    check_cpu
     ! $INTEL_GPU_HANGS || echo "Not running intel_gpu_top" 1>&2  # FIXME
     local HTML_FILE=$DATA_DIR/tests.html
     local i=0
@@ -365,5 +367,6 @@ DESCRIPTION="$*"
 
 # setup_cgroup
 check_utils
+check_cpu
 trap cleanup EXIT ERR INT
 test_sequential
