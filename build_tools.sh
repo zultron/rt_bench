@@ -85,7 +85,8 @@ test_installed() {
     local PKG=$1
     dpkg-query -W $PKG >&/dev/null || return 1
     local STAT=$(dpkg-query -W --showformat '${db:Status-Status}\n' $PKG 2>/dev/null)
-    test $STAT = installed && return 0 || return 1
+    test $STAT = installed || return 1
+    return 0
 }
 
 install_conditionally() {
@@ -166,6 +167,8 @@ build_igt_gpu_tools() {
 install_other_tools() {
     echo "Installing other tools"
     install_conditionally "${OTHER_UTILS[@]}"
+    # Install hwloc-nox if hwloc isn't installed already
+    test_installed hwloc || install_conditionally hwloc-nox
 }
 
 if $CALLED_AS_SCRIPT; then
