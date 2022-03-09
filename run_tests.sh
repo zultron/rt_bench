@@ -291,7 +291,7 @@ test_sequential() {
         local MEM_TOP=$TEST_DIR/mem_top_out.txt
         local GLMARK2_OUT=$TEST_DIR/glmark2_out.txt
         local CT_ARGS="-D$DURATION -m -p90 -i200 -h400 -q"
-        CT_ARGS+=" -t $CORES -a0-$(($CORES-1))"
+        CT_ARGS+=" -t $CORES -a${RT_CPUS}"
         local GLMARK2_TEST_ARGS="${GLMARK2_ARGS} -b $CASE:duration=$DURATION"
         test $CASE != no-gpu-stress || GLMARK2_TEST_ARGS=""
 
