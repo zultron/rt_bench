@@ -57,7 +57,7 @@ cleanup() {
     exit
 }
 
-function check_utils() {
+check_utils() {
     for UTIL in "${NEEDED_UTILS[@]}"; do
         if ! which $UTIL >&/dev/null; then
             echo "Failed to find executable '$UTIL'" >&2
@@ -66,7 +66,7 @@ function check_utils() {
     done
 }
 
-function setup_cgroup() {
+setup_cgroup() {
     if ! $CREATE_CPUSET; then
         echo "Not setting up isolcpus cpuset cgroup" 1>&2
         return
@@ -96,7 +96,7 @@ function setup_cgroup() {
     fi
 }
 
-function test_cases() {
+test_cases() {
     if test -z "$DISPLAY"; then
         echo "Note:  DISPLAY unset; not running GPU stress tests" >&2
         RUN_ONE=true
