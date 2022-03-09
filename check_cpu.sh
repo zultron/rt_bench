@@ -29,8 +29,8 @@ check_cpu() {
             "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz")
             # 8259U:  ???
             # 8250U:  YanLing/IWill YL-KBRL2
-            RT_CPUS=${RT_CPUS:-3,7}  # Shared threads
-            NONRT_CPUS=${NONRT_CPUS:-0-2,4-6}
+            RT_CPUS=${RT_CPUS:-6,7}  # Shared threads
+            NONRT_CPUS=${NONRT_CPUS:-0-5}
             ;;
         "Intel(R) Atom(TM) Processor E3950 @ 1.60GHz")
             # ADLINK MXE-211
@@ -39,8 +39,8 @@ check_cpu() {
             INTEL_GPU_HANGS=true
             ;;
         *)
-            echo "CPU '$CPU' unknown; please add to $BASH_SOURCE.  Exiting." >&2
-            exit 1
+            RT_CPUS=
+            NONRT_CPUS=
             ;;
     esac
 }
