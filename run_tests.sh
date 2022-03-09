@@ -8,7 +8,6 @@ lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 CGNAME=/rt
 glxinfo >&/dev/null && \
     GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
-CORES="$(nproc --all)"
 CPU="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
     /proc/cpuinfo)"
 
@@ -164,7 +163,7 @@ html_header() {
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
 		      <li>Create 'cpuset:$CGNAME' cgroup:  $CREATE_CPUSET</li>
 		      <li>CPU:  $CPU</li>
-		      <li>Number of CPUs:  $CORES</li>
+		      <li>Number of CPUs:  $NUM_CORES</li>
 		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
 		      $RT_CPUS_HTML
 		      $GPU_ACCEL_HTML
@@ -213,9 +212,9 @@ mk_hist() {
     cat >$PLOTCMD <<-EOF
 		set terminal png
 		set output "$PLOT_FILE"
-		set multiplot layout $CORES, 1 title "Latency histogram:  $TITLE" font ",14"
+		set multiplot layout $NUM_CORES, 1 title "Latency histogram:  $TITLE" font ",14"
 		unset xtics
-		numcpus = $CORES
+		numcpus = $NUM_CORES
 		top_border = (1 - 0.1)
 		bot_border = 0.05
 		inter_border = 0.02
@@ -223,7 +222,7 @@ mk_hist() {
 		graph_dist = (top_border - bot_border) / numcpus
 		EOF
 
-    for i in `seq 1 $CORES`; do
+    for i in `seq 1 $NUM_CORES`; do
         # Clean up data
         local CPU_PLOT_DATA=$TEST_DIR/histogram$i
         grep -v -e "^#" -e "^$" $PLOT_DATA | tr " " "\t" | cut -f1,$((i+1)) \
@@ -241,11 +240,11 @@ mk_hist() {
 			set ylabel " "
 			EOF
         # Add Y label to 2nd last plot
-        test $i != $(($CORES - 1)) || cat >>$PLOTCMD <<-EOF
+        test $i != $(($NUM_CORES - 1)) || cat >>$PLOTCMD <<-EOF
 			set ylabel "Number of latency samples"
 			EOF
         # Add X label to last plot
-        test $i != $CORES || cat >>$PLOTCMD <<-EOF
+        test $i != $NUM_CORES || cat >>$PLOTCMD <<-EOF
 			set xlabel "Latency (us)"
 			set xtics nomirror
 			EOF
@@ -289,7 +288,7 @@ test_sequential() {
         local MEM_TOP=$TEST_DIR/mem_top_out.txt
         local GLMARK2_OUT=$TEST_DIR/glmark2_out.txt
         local CT_ARGS="-D$DURATION -m -p90 -i200 -h400 -q"
-        CT_ARGS+=" -t $CORES -a${RT_CPUS}"
+        CT_ARGS+=" -t $NUM_CORES -a${RT_CPUS}"
         local GLMARK2_TEST_ARGS="${GLMARK2_ARGS} -b $CASE:duration=$DURATION"
         test $CASE != no-gpu-stress || GLMARK2_TEST_ARGS=""
 

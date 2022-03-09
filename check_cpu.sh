@@ -17,30 +17,30 @@ check_cpu() {
         "Intel(R) Celeron(R) CPU  N3160  @ 1.60GHz")
             # ADLINK MXE-1501
             RT_CPUS=${RT_CPUS:-2-3}  # Shared L2 cache
-            NONRT_CPUS=${NONRT_CPUS:-0-1}
             INTEL_GPU_HANGS=true
             ;;
         "Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz")
             # Asus PRIME H310M-A R2.0
             RT_CPUS=${RT_CPUS:-5}  # No shared nothing!
-            NONRT_CPUS=${NONRT_CPUS:-0-4}
             ;;
         "Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz" | \
             "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz")
             # 8259U:  ???
             # 8250U:  YanLing/IWill YL-KBRL2
             RT_CPUS=${RT_CPUS:-6,7}  # Shared threads
-            NONRT_CPUS=${NONRT_CPUS:-0-5}
             ;;
         "Intel(R) Atom(TM) Processor E3950 @ 1.60GHz")
             # ADLINK MXE-211
             RT_CPUS=${RT_CPUS:-2-3}  # Shared L2 cache
-            NONRT_CPUS=${NONRT_CPUS:-0-1}
             INTEL_GPU_HANGS=true
             ;;
         *)
             RT_CPUS=
             NONRT_CPUS=
+            return
             ;;
     esac
+    RT_CPUS=$(hwloc-calc --intersect PU PU:${RT_CPUS//,/ PU:})
+    NONRT_CPUS=$(hwloc-calc --intersect PU all ~PU:${RT_CPUS//,/ ~PU:})
+    NUM_CORES=$(hwloc-calc --number-of PU PU:${RT_CPUS//,/ PU:})
 }
