@@ -161,9 +161,9 @@ html_header() {
 		      <li>cyclictest version:  $($CYCLICTEST --help | head -1)</li>
 		      <li>Test duration:  $DURATION seconds</li>
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
-		      <li>Create 'cpuset:$CGNAME' cgroup:  $CREATE_CPUSET</li>
 		      <li>CPU:  $CPU</li>
-		      <li>Number of CPUs:  $NUM_CORES</li>
+		      <li>Number of CPUs:  $(nproc --all)</li>
+		      <li>Number of isolated CPUs:  $NUM_CORES  ($RT_CPUS)</li>
 		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
 		      $RT_CPUS_HTML
 		      $GPU_ACCEL_HTML
@@ -335,7 +335,6 @@ usage() {
 		Usage:  $0 [arg ...] [Description]
 		  -d SECS:  Duration of test in seconds (default 20)
 		  -o PATH:  Location of output dir (default $DATA_DIR)
-		  -c:       Create cgroup cpuset:$CGNAME on CPUs in /proc/cmdline isolcpus= argument
 		  -1:       Run only one test without glmark2 GPU loading
 		  -h:       This usage message
 		EOF
@@ -348,13 +347,11 @@ usage() {
 }
 
 DURATION=20
-CREATE_CPUSET=false
 RUN_ONE=false
-while getopts :d:o:c1h ARG; do
+while getopts :d:o:1h ARG; do
     case $ARG in
         d) DURATION=$OPTARG ;;
         o) DATA_DIR=$OPTARG ;;
-        c) CREATE_CPUSET=true ;;
         1) RUN_ONE=true ;;
         h) usage ;;
         *) usage "Unknown option '-$ARG'" ;;
