@@ -8,6 +8,7 @@ lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
 CGNAME=/rt
 glxinfo >&/dev/null && \
     GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
+test $GPU_ACCEL = no || GPU_INFO="$(glxinfo | sed -n 's/^\( *Device: \)// p')"
 CPU="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
     /proc/cpuinfo)"
 
@@ -165,6 +166,8 @@ html_header() {
 		      <li>Number of CPUs:  $(nproc --all)</li>
 		      <li>Number of isolated CPUs:  $NUM_CORES  ($RT_CPUS)</li>
 		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
+		      <li>OS description:  $(lsb_release -ds)</li>
+		      <li>GPU:  ${GPU_INFO:-(None detected)}</li>
 		      $RT_CPUS_HTML
 		      $GPU_ACCEL_HTML
 		    </ul>
