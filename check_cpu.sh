@@ -26,7 +26,7 @@ check_cpu() {
         "Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz" | \
             "Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz")
             # 8259U:  ???
-            # 8250U:  YanLing/IWill YL-KBRL2
+            # 8250U:  YanLing/IWill N15 YL-KBRL2
             RT_CPUS=${RT_CPUS:-6,7}  # Shared threads
             ;;
         "Intel(R) Atom(TM) Processor E3950 @ 1.60GHz")
