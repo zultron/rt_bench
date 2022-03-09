@@ -205,7 +205,7 @@ mk_hist() {
     local PLOT_FILE=$1; shift
     local HTML_FILE=$1; shift
     local TITLE="$*"
-    local i
+    local i=0
     local PLOTCMD=$TEST_DIR/plotcmd.gv
 
     # Plot header
@@ -222,7 +222,8 @@ mk_hist() {
 		graph_dist = (top_border - bot_border) / numcpus
 		EOF
 
-    for i in `seq 1 $NUM_CORES`; do
+    for CPU in ${RT_CPUS//,/ }; do
+        i=$((i+1))
         # Clean up data
         local CPU_PLOT_DATA=$TEST_DIR/histogram$i
         grep -v -e "^#" -e "^$" $PLOT_DATA | tr " " "\t" | cut -f1,$((i+1)) \
@@ -249,7 +250,7 @@ mk_hist() {
 			set xtics nomirror
 			EOF
         cat >>$PLOTCMD <<-EOF
-			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$((i-1)): max $MAX" with histeps
+			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$CPU: max $MAX" with histeps
 			#
 			EOF
     done
