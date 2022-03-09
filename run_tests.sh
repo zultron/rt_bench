@@ -97,13 +97,11 @@ setup_cgroup() {
 }
 
 test_cases() {
-    if test -z "$DISPLAY"; then
-        echo "Note:  DISPLAY unset; not running GPU stress tests" >&2
-        RUN_ONE=true
+    if test -z "$DISPLAY" && ! $RUN_ONE; then
+        usage "DISPLAY unset; unable to run GPU stress tests"
     fi
-    if test "$GPU_ACCEL" = no; then
-        echo "Note:  DISPLAY=${DISPLAY} not accelerated; not running GPU stress tests" >&2
-        RUN_ONE=true
+    if test "$GPU_ACCEL" = no && ! $RUN_ONE; then
+        usage "No GPU acceleration; unable to run GPU stress tests"
     fi
     if $RUN_ONE; then
         echo no-gpu-stress
