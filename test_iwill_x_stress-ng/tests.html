@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>Latency tests:  Thu, 10 Mar 2022 16:23:16 -0600</title>
+  </head>
+  <body>
+    <h1>Latency tests:  Yanling/Iwill N15 YL-KBRL2: GPU, isolcpus=izq</h1>
+    <ul>
+      <li>Date:  Thu, 10 Mar 2022 16:23:16 -0600</li>
+      <li>Invocation:  "./run_tests.sh" "-d" "600" "-1" "-o" "test_iwill_x_stress-ng" "Yanling/Iwill N15 YL-KBRL2: GPU, isolcpus=izq"</li>
+      <li>cyclictest version:  cyclictest V 2.30</li>
+      <li>Test duration:  600 seconds</li>
+      <li>Kernel commandline:  BOOT_IMAGE=/vmlinuz-5.10.41-rt42-3.0.0.0 root=UUID=18ddffbe-fe92-48a5-9fae-04312dd3d393 ro usbcore.autosuspend=-1 intel_idle.max_cstate=1 efi=runtime rootflags=data=journal,commit=1,noatime isolcpus=6,7 nohz_full=6,7 irqaffinity=0-5</li>
+      <li>CPU:  Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz</li>
+      <li>Number of CPUs:  8</li>
+      <li>Number of isolated CPUs:  2  (6,7)</li>
+      <li>DMI info:  dmi:bvnAmericanMegatrendsInc.:bvr5.12:bd09/11/2019:br5.12:svnYANLING:pnYL-KBRL2Series:pvrVer1.01:rvnYANLING:rnYL-KBRL2Series:rvrVer1.01:cvnDefaultstring:ct3:cvrDefaultstring:</li>
+      <li>OS description:  Linux Mint 20.1</li>
+      <li>GPU:  Mesa Intel(R) UHD Graphics 620 (KBL GT2) (0x5917)</li>
+      <li>isolcpus=6,7</li>
+      
+    </ul>
+
+    <h2>Test #01:  stress-ng</h2>
+    <ul>
+      <li>Command:  cyclictest -D600 -m -p90 -i200 -h400 -q -t 2 -a6,7</li>
+      
+      <li><a href="01/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="01/cpu_top_out.txt">mpstat output</a></li>
+      
+      
+      <li><a href="01/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="01/mem_top_out.txt">free memory output</a></li>
+      <li><a href="01/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="01/plot-01.png"/>
+
+  </body>
+</html>

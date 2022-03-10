@@ -1,0 +1,34 @@
+set terminal png
+set output "test_iwill_x_stress-ng/01/plot-01.png"
+set multiplot layout 2, 1 title "Latency histogram:  stress-ng" font ",14"
+unset xtics
+numcpus = 2
+top_border = (1 - 0.1)
+bot_border = 0.05
+inter_border = 0.02
+graph_height = (top_border - bot_border - inter_border * (numcpus - 1)) / numcpus
+graph_dist = (top_border - bot_border) / numcpus
+graphnum = 1
+set tmargin at screen (top_border - (graphnum-1) * graph_dist)
+set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
+set xrange [0:400]
+set logscale y
+set ytics font ",8"
+set yrange [0.8:*]
+set ylabel " "
+set ylabel "Number of latency samples"
+plot "test_iwill_x_stress-ng/01/histogram1" using 1:2 title "CPU6: max 00257" with histeps
+#
+graphnum = 2
+set tmargin at screen (top_border - (graphnum-1) * graph_dist)
+set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
+set xrange [0:400]
+set logscale y
+set ytics font ",8"
+set yrange [0.8:*]
+set ylabel " "
+set xlabel "Latency (us)"
+set xtics nomirror
+plot "test_iwill_x_stress-ng/01/histogram2" using 1:2 title "CPU7: max 00266" with histeps
+#
+unset multiplot
