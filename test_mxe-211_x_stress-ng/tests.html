@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>Latency tests:  Thu, 10 Mar 2022 15:50:59 -0600</title>
+  </head>
+  <body>
+    <h1>Latency tests:  ADLINK MXE-211:  GPU, isolcpus=izq</h1>
+    <ul>
+      <li>Date:  Thu, 10 Mar 2022 15:50:59 -0600</li>
+      <li>Invocation:  "./run_tests.sh" "-d" "600" "-1" "-o" "test_mxe-211_x_stress-ng" "ADLINK MXE-211:  GPU, isolcpus=izq"</li>
+      <li>cyclictest version:  cyclictest V 2.30</li>
+      <li>Test duration:  600 seconds</li>
+      <li>Kernel commandline:  BOOT_IMAGE=/boot/vmlinuz-5.10.0-11-rt-amd64 root=UUID=5f6b62f5-6656-4fbc-ae2e-98590ed81658 ro systemd.unified_cgroup_hierarchy=false systemd.legacy_systemd_cgroup_controller=false isolcpus=2-3 nohz_full=2-3 irqaffinity=0-1</li>
+      <li>CPU:  Intel(R) Atom(TM) Processor E3950 @ 1.60GHz</li>
+      <li>Number of CPUs:  4</li>
+      <li>Number of isolated CPUs:  2  (2,3)</li>
+      <li>DMI info:  dmi:bvnAmericanMegatrendsInc.:bvr2.06.10:bd02/06/2020:svnADLINKTECHNOLOGYInc.:pnMXE210:pvrRev.Ax:rvnADLINKTECHNOLOGYInc.:rnMXE210:rvrB1:cvnADLINKTECHNOLOGYInc.:ct13:cvrRevAx:</li>
+      <li>OS description:  Debian GNU/Linux 11 (bullseye)</li>
+      <li>GPU:  (None detected)</li>
+      <li>isolcpus=2,3</li>
+      
+    </ul>
+
+    <h2>Test #01:  stress-ng</h2>
+    <ul>
+      <li>Command:  cyclictest -D600 -m -p90 -i200 -h400 -q -t 2 -a2,3</li>
+      
+      <li>stress-ng command:  /home/zultron/rt_bench/build/stress-ng/stress-ng --cpu 4 --vm 2 --hdd 1 --fork 8 --timeout 600 --metrics</li>
+      <li><a href="01/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="01/glmark2_out.txt">glmark2 output</a></li>
+      <li><a href="01/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="01/mem_top_out.txt">free memory output</a></li>
+      <li><a href="01/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="01/plot-01.png"/>
+
+  </body>
+</html>
