@@ -186,11 +186,11 @@ html_test_header() {
     local STRESS_NG_TEST_ARGS="$5"
     test -z "$GLMARK2_ARGS" || GLM_HTML="<li>glmark2 command:  glmark2 $GLMARK2_ARGS</li>"
     test -z "$GLMARK2_ARGS" || \
-        GLM_OUT_HTML="<li><href a=\"$IX/glmark2_out.txt\">glmark2 output</href></li>"
+        GLM_OUT_HTML="<li><a href=\"$IX/glmark2_out.txt\">glmark2 output</a></li>"
     test -z "$STRESS_NG_TEST_ARGS" || \
         STRESS_NG_HTML="<li>stress-ng command:  ${STRESS_NG} ${STRESS_NG_TEST_ARGS}</li>"
     test -z "$STRESS_NG_TEST_ARGS" || \
-        STRESS_NG_HTML="<li><href a=\"$IX/stress_ng_out.txt\">stress-ng output</href></li>"
+        STRESS_NG_HTML="<li><a href=\"$IX/stress_ng_out.txt\">stress-ng output</a></li>"
     cat <<-EOF
 
 		    <h2>Test #${IX}:  ${TITLE}</h2>
@@ -198,12 +198,12 @@ html_test_header() {
 		      <li>Command:  cyclictest $CT_ARGS</li>
 		      $GLM_HTML
 		      $STRESS_NG_HTML
-		      <li><href a="$IX/cpu_top_out.txt">mpstat output</href></li>
+		      <li><a href="$IX/cpu_top_out.txt">mpstat output</a></li>
 		      $GLM_OUT_HTML
 		      $STRESS_NG_OUT_HTML
-		      <li><href a="$IX/gpu_top_out.txt">intel_gpu_top output</href></li>
-		      <li><href a="$IX/mem_top_out.txt">free memory output</href></li>
-		      <li><href a="$IX/cyclictest_out.txt">raw cyclictest output</href></li>
+		      <li><a href="$IX/gpu_top_out.txt">intel_gpu_top output</a></li>
+		      <li><a href="$IX/mem_top_out.txt">free memory output</a></li>
+		      <li><a href="$IX/cyclictest_out.txt">raw cyclictest output</a></li>
 		EOF
 }
 
