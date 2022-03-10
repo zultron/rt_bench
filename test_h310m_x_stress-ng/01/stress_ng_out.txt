@@ -1,0 +1,9 @@
+stress-ng: info:  [15762] setting to a 600 second (10 mins, 0.00 secs) run per stressor
+stress-ng: info:  [15762] dispatching hogs: 4 cpu, 2 vm, 1 hdd, 8 fork
+stress-ng: info:  [15762] successful run completed in 602.93s (10 mins, 2.93 secs)
+stress-ng: info:  [15762] stressor       bogo ops real time  usr time  sys time   bogo ops/s     bogo ops/s CPU used per
+stress-ng: info:  [15762]                           (secs)    (secs)    (secs)   (real time) (usr+sys time) instance (%)
+stress-ng: info:  [15762] cpu             1837420    600.00   1771.51      0.69      3062.36        1036.80        73.84
+stress-ng: info:  [15762] vm              9744572    600.01    880.84     11.76     16240.68       10917.06        74.38
+stress-ng: info:  [15762] hdd             1215303    602.92     28.21     49.65      2015.69       15608.82        12.91
+stress-ng: info:  [15762] fork             483897    600.00    126.08     99.00       806.49        2149.89         4.69

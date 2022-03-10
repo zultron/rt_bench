@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>Latency tests:  Thu, 10 Mar 2022 16:22:49 -0600</title>
+  </head>
+  <body>
+    <h1>Latency tests:  Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq</h1>
+    <ul>
+      <li>Date:  Thu, 10 Mar 2022 16:22:49 -0600</li>
+      <li>Invocation:  "./run_tests.sh" "-d" "600" "-1" "-o" "test_h310m_x_stress-ng" "Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq"</li>
+      <li>cyclictest version:  cyclictest V 2.30</li>
+      <li>Test duration:  600 seconds</li>
+      <li>Kernel commandline:  BOOT_IMAGE=/boot/vmlinuz-4.19.0-14-rt-amd64 root=UUID=2c10d0d6-4ed6-49a0-a559-d0cd0eb05b3a ro intel_idle.max_cstate=1 isolcpus=5 isolcpus=5 nohz_full=5 irqaffinity=0-4</li>
+      <li>CPU:  Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz</li>
+      <li>Number of CPUs:  6</li>
+      <li>Number of isolated CPUs:  1  (5)</li>
+      <li>DMI info:  dmi:bvnAmericanMegatrendsInc.:bvr1004:bd09/06/2019:svnSystemmanufacturer:pnSystemProductName:pvrSystemVersion:rvnASUSTeKCOMPUTERINC.:rnPRIMEH310M-AR2.0:rvrRevX.0x:cvnDefaultstring:ct3:cvrDefaultstring:</li>
+      <li>OS description:  Debian GNU/Linux 10 (buster)</li>
+      <li>GPU:  Mesa DRI Intel(R) HD Graphics (Coffeelake 3x8 GT2)  (0x3e98)</li>
+      <li>isolcpus=5</li>
+      
+    </ul>
+
+    <h2>Test #01:  stress-ng</h2>
+    <ul>
+      <li>Command:  cyclictest -D600 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      
+      <li><a href="01/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="01/cpu_top_out.txt">mpstat output</a></li>
+      
+      
+      <li><a href="01/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="01/mem_top_out.txt">free memory output</a></li>
+      <li><a href="01/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="01/plot-01.png"/>
+
+  </body>
+</html>
