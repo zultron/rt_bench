@@ -288,7 +288,6 @@ test_sequential() {
     fi
     test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
     mkdir -p $DATA_DIR
-    ! $INTEL_GPU_HANGS || echo "Not running intel_gpu_top" 1>&2  # FIXME
     local HTML_FILE=$DATA_DIR/tests.html
     local i=0
     html_header "Latency tests:  $(date -R)" > $HTML_FILE
@@ -334,8 +333,7 @@ test_sequential() {
         fi
 
         # Run Intel GPU top, if applicable
-        ! $HAVE_I915 && $INTEL_GPU_HANGS \
-            || { sudo $INTEL_GPU_TOP -o - > $GPU_TOP & G_TOP_PID=$!; }
+        ! $HAVE_I915 || { sudo $INTEL_GPU_TOP -o - > $GPU_TOP & G_TOP_PID=$!; }
 
         # Record processor & memory stats during run
         mpstat -P ALL 1 $DURATION > $CPU_TOP & C_TOP_PID=$!
