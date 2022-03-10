@@ -194,6 +194,11 @@ html_test_header() {
 		      <li>Command:  cyclictest $CT_ARGS</li>
 		      $GLM_HTML
 		      $STRESS_NG_HTML
+		      <li><href a="$IX/cpu_top_out.txt">mpstat output</href></li>
+		      <li><href a="$IX/glmark2_out.txt">glmark2 output</href></li>
+		      <li><href a="$IX/gpu_top_out.txt">intel_gpu_top output</href></li>
+		      <li><href a="$IX/mem_top_out.txt">free memory output</href></li>
+		      <li><href a="$IX/cyclictest_out.txt">raw cyclictest output</href></li>
 		EOF
 }
 
