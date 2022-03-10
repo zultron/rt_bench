@@ -74,6 +74,7 @@ BUILD_DEPS_STRESS_NG=(
     zlib1g-dev
     libkmod-dev
     libxxhash-dev
+    ca-certificates  # git over https
 )
 OTHER_UTILS=(  # Executables used in run_tests.sh
     intel-gpu-tools  # for intel_gpu_top
