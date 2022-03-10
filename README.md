@@ -37,9 +37,10 @@ run writes periodic data on CPU, GPU and memory into files within
 subdirectories named `01`, `02` etc.
 
 While the tests are running, run the following for a basic sanity
-check that `cyclictest` is running as intended.
+check that `cyclictest` is running as intended on isolated CPUs, and
+stress tests are running on non-isolated CPUs.
 
-    ps -Lo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,comm -C cyclictest
+    ps -Lo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,comm -C cyclictest -C glmark2 -C stress-ng
 
 One copy of `cyclictest` should be running with one thread for each
 CPU, and with elevated `RTPRIO` 90.

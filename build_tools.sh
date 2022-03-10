@@ -59,6 +59,22 @@ BUILD_DEPS_IGT_GPU_TOOLS=(
     flex
     bison
 )
+BUILD_DEPS_STRESS_NG=(
+    libaio-dev
+    libapparmor-dev
+    libattr1-dev
+    libbsd-dev
+    libcap-dev
+    libgcrypt20-dev
+    libipsec-mb-dev
+    libjudy-dev
+    libkeyutils-dev
+    libsctp-dev
+    libatomic1
+    zlib1g-dev
+    libkmod-dev
+    libxxhash-dev
+)
 OTHER_UTILS=(  # Executables used in run_tests.sh
     intel-gpu-tools  # for intel_gpu_top
     sysstat  # for mpstat
@@ -164,6 +180,20 @@ build_igt_gpu_tools() {
     fi
 }
 
+build_stress_ng() {
+    INSTALL=${1:-false}
+    ! $INSTALL || PREFIX=--prefix=/usr
+    set_vars
+    install_build_deps "${BUILD_DEPS_STRESS_NG[@]}"
+    git_clone_and_cd https://github.com/ColinIanKing/stress-ng.git
+    echo "Building stress-ng"
+    ${DO} make
+    if $INSTALL; then
+        echo "Installing stress-ng"
+        ${SUDO} make install
+    fi
+}
+
 install_other_tools() {
     echo "Installing other tools"
     install_conditionally "${OTHER_UTILS[@]}"
@@ -176,6 +206,7 @@ if $CALLED_AS_SCRIPT; then
     build_rt_tests $INSTALL
     build_glmark2 $INSTALL
     build_igt_gpu_tools $INSTALL
+    build_stress_ng $INSTALL
     install_other_tools
     echo "Completed successfully"
 fi

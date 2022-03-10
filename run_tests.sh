@@ -29,10 +29,13 @@ if test -z "$IN_DOCKER"; then
     # Find intel_gpu_top
     INTEL_GPU_TOP=$THIS_DIR/build/igt-gpu-tools/build/tools/intel_gpu_top
     test -x $INTEL_GPU_TOP || INTEL_GPU_TOP=intel_gpu_top
+    # Find stress_ng
+    STRESS_NG=$THIS_DIR/build/stress-ng/stress-ng
+    test -x $STRESS_NG || STRESS_NG=stress-ng
 else
     GLMARK2=glmark2
     CYCLICTEST=cyclictest
-    INTEL_GPU_TOP=intel_gpu_top
+    STRESS_NG=stress-ng
 fi
 
 NEEDED_UTILS=(
@@ -49,6 +52,7 @@ NEEDED_UTILS=(
 )
 
 cleanup() {
+    test -z "$S_PID" || pkill -P $S_PID || true
     test -z "$G_PID" || pkill -P $G_PID || true
     test -z "$G_TOP_PID" || sudo pkill -P $G_TOP_PID || true
     test -z "$C_TOP_PID" || pkill -P $C_TOP_PID || true
@@ -146,7 +150,7 @@ test_cases() {
 }
 
 html_header() {
-    local RT_CPUS_HTML GPU_ACCEL_HTML
+    local RT_CPUS_HTML GPU_ACCEL_HTML STRESS_NG_HTML
     test -z "$RT_CPUS" || RT_CPUS_HTML="<li>isolcpus=$RT_CPUS</li>"
     $RUN_ONE || GPU_ACCEL_HTML="<li>GPU acceleration:  $GPU_ACCEL</li>"
     cat <<-EOF
@@ -179,13 +183,17 @@ html_test_header() {
     local TITLE="$2"
     local CT_ARGS="$3"
     local GLMARK2_ARGS="$4"
+    local STRESS_NG_TEST_ARGS="$5"
     test -z "$GLMARK2_ARGS" || GLM_HTML="<li>glmark2 command:  glmark2 $GLMARK2_ARGS</li>"
+    test -z "$STRESS_NG_TEST_ARGS" || \
+        STRESS_NG_HTML="<li>stress-ng command:  ${STRESS_NG} ${STRESS_NG_TEST_ARGS}</li>"
     cat <<-EOF
 
 		    <h2>Test #${IX}:  ${TITLE}</h2>
 		    <ul>
 		      <li>Command:  cyclictest $CT_ARGS</li>
 		      $GLM_HTML
+		      $STRESS_NG_HTML
 		EOF
 }
 
@@ -285,15 +293,19 @@ test_sequential() {
         local TEST_DIR=$DATA_DIR/$IX; mkdir -p $TEST_DIR
         local PLOT_FILE="$TEST_DIR/plot-${IX}.png"
         local TITLE="glmark2 $CASE"
-        test "$CASE" != no-gpu-stress || TITLE="No GPU stress"
+        if test "$CASE" = no-gpu-stress; then
+            $EXTERNAL_STRESS && TITLE="External stress" || TITLE="stress-ng"
+        fi
         local DATA_FILE=$TEST_DIR/cyclictest_out.txt
         local GPU_TOP=$TEST_DIR/gpu_top_out.txt
         local CPU_TOP=$TEST_DIR/cpu_top_out.txt
         local MEM_TOP=$TEST_DIR/mem_top_out.txt
         local GLMARK2_OUT=$TEST_DIR/glmark2_out.txt
+        local STRESS_NG_OUT=$TEST_DIR/stress_ng_out.txt
         local CT_ARGS="-D$DURATION -m -p90 -i200 -h400 -q"
         CT_ARGS+=" -t $NUM_CORES -a${RT_CPUS}"
         local GLMARK2_TEST_ARGS="${GLMARK2_ARGS} -b $CASE:duration=$DURATION"
+        local STRESS_NG_TEST_ARGS="--cpu 4 --vm 2 --hdd 1 --fork 8 --timeout $DURATION --metrics"
         test $CASE != no-gpu-stress || GLMARK2_TEST_ARGS=""
 
         # Print info to console & HTML file
@@ -303,11 +315,17 @@ test_sequential() {
         echo "Command:  $CYCLICTEST $CT_ARGS"
         echo "Output:  $DATA_FILE"
         test -z "$GLMARK2_TEST_ARGS" || echo "glmark2 command:  $GLMARK2 $GLMARK2_TEST_ARGS"
-        html_test_header $IX "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" >> $HTML_FILE
+        html_test_header $IX "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" \
+            "$STRESS_NG_TEST_ARGS" >> $HTML_FILE
 
         # Run glmark2, if applicable
         if test $CASE != no-gpu-stress; then
             ${GLMARK2} ${GLMARK2_TEST_ARGS} > $GLMARK2_OUT & G_PID=$!
+        fi
+
+        # Run stress-ng, if applicable
+        if test $CASE = no-gpu-stress && ! $EXTERNAL_STRESS; then
+            ${STRESS_NG} ${STRESS_NG_TEST_ARGS} > $STRESS_NG_OUT & S_PID=$!
         fi
 
         # Run Intel GPU top, if applicable
@@ -338,7 +356,8 @@ usage() {
 		Usage:  $0 [arg ...] [Description]
 		  -d SECS:  Duration of test in seconds (default 20)
 		  -o PATH:  Location of output dir (default $DATA_DIR)
-		  -1:       Run only one test without glmark2 GPU loading
+		  -1:       Run only one test with stress-ng and no glmark2
+		  -x:       For "eXternal" struss:  run one test without stress-ng/glmark2
 		  -h:       This usage message
 		EOF
     if test -z "$1"; then
@@ -351,11 +370,13 @@ usage() {
 
 DURATION=20
 RUN_ONE=false
+EXTERNAL_STRESS=false
 while getopts :d:o:1h ARG; do
     case $ARG in
         d) DURATION=$OPTARG ;;
         o) DATA_DIR=$OPTARG ;;
         1) RUN_ONE=true ;;
+        x) EXTERNAL_STRESS=true; RUN_ONE=true ;;
         h) usage ;;
         *) usage "Unknown option '-$ARG'" ;;
     esac
