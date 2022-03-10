@@ -329,7 +329,7 @@ test_sequential() {
 
         # Run stress-ng, if applicable
         if test $CASE = no-gpu-stress && ! $EXTERNAL_STRESS; then
-            ${STRESS_NG} ${STRESS_NG_TEST_ARGS} > $STRESS_NG_OUT & S_PID=$!
+            ${STRESS_NG} ${STRESS_NG_TEST_ARGS} >& $STRESS_NG_OUT & S_PID=$!
         fi
 
         # Run Intel GPU top, if applicable
