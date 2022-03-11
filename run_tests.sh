@@ -213,12 +213,9 @@ html_test_header() {
 		      <li><a href="$IX/gpu_top_out.txt">intel_gpu_top output</a></li>
 		      <li><a href="$IX/mem_top_out.txt">free memory output</a></li>
 		      <li><a href="$IX/cyclictest_out.txt">raw cyclictest output</a></li>
+		    </ul>
+		    <img src="$IX/$(basename $PLOT_FILE)"/>
 		EOF
-}
-
-html_test_plot() {
-	echo "    </ul>"
-	echo "    <img src=\"$1\"/>"
 }
 
 html_footer() {
@@ -292,7 +289,6 @@ mk_hist() {
 
     # Execute plot command
     cat $PLOTCMD | gnuplot -persist
-    html_test_plot $(realpath --relative-to=$DATA_DIR  $PLOT_FILE) >> $HTML_FILE
 }
 
 test_sequential() {
@@ -300,11 +296,13 @@ test_sequential() {
         echo "CPU '$CPU_DESC' unknown; please add to $BASH_SOURCE.  Exiting." >&2
         exit 1
     fi
-    test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
-    mkdir -p $DATA_DIR
     local HTML_FILE=$DATA_DIR/tests.html
+    if test $((SKIP)) -eq 0; then
+        test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
+        mkdir -p $DATA_DIR
+        html_header "Latency tests:  $(date -R)" > $HTML_FILE
+    fi
     local i=0
-    html_header "Latency tests:  $(date -R)" > $HTML_FILE
     for CASE in $(test_cases); do
         i=$((++i))
         local IX=$(printf "%02d" $i)
@@ -329,17 +327,14 @@ test_sequential() {
         # Print info to console & HTML file
         echo
         echo "****************"
-        if test "$CASE" = none; then
-            echo "Test #$i:  (skipping)"
-            echo "    <h2>Test #$i:  (skipping)</h2>"
+        echo "Test #$i:  $TITLE"
+        if test $i -le $((SKIP)); then
+            echo "    (skipping)"
             continue
         fi
-        echo "Test #$i:  $TITLE"
         echo "Command:  $CYCLICTEST $CT_ARGS"
         echo "Output:  $DATA_FILE"
         test -z "$GLMARK2_TEST_ARGS" || echo "glmark2 command:  $GLMARK2 $GLMARK2_TEST_ARGS"
-        html_test_header $IX "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" \
-            "$STRESS_NG_TEST_ARGS" >> $HTML_FILE
 
         # Run glmark2, if applicable
         if test $CASE != no-gpu-stress; then
@@ -369,6 +364,10 @@ test_sequential() {
         # Generate chart
         echo "  generating chart"
         mk_hist $TEST_DIR $DATA_FILE $PLOT_FILE $HTML_FILE "$TITLE"
+
+        # Update HTML
+        html_test_header $IX "$TITLE" "$CT_ARGS" "$GLMARK2_TEST_ARGS" \
+            "$STRESS_NG_TEST_ARGS" >> $HTML_FILE
     done
     html_footer >> $HTML_FILE
 }
@@ -378,6 +377,7 @@ usage() {
 		Usage:  $0 [arg ...] [Description]
 		  -d SECS:  Duration of test in seconds (default 20)
 		  -o PATH:  Location of output dir (default $DATA_DIR)
+		  -s NUM:   Skip the first NUM tests
 		  -1:       Run only one test with stress-ng and no glmark2
 		  -x:       For "eXternal" struss:  run one test without stress-ng/glmark2
 		  -h:       This usage message
@@ -393,10 +393,11 @@ usage() {
 DURATION=20
 RUN_ONE=false
 EXTERNAL_STRESS=false
-while getopts :d:o:1h ARG; do
+while getopts :d:o:s:1h ARG; do
     case $ARG in
         d) DURATION=$OPTARG ;;
         o) DATA_DIR=$OPTARG ;;
+        s) SKIP=$OPTARG ;;
         1) RUN_ONE=true ;;
         x) EXTERNAL_STRESS=true; RUN_ONE=true ;;
         h) usage ;;
