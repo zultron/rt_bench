@@ -38,7 +38,7 @@ check_cpu() {
             test -n "$RT_CPUS" || return
             ;;
     esac
-    RT_CPUS=$(hwloc-calc --intersect PU PU:${RT_CPUS//,/ PU:})
-    NONRT_CPUS=$(hwloc-calc --intersect PU all ~PU:${RT_CPUS//,/ ~PU:})
-    NUM_CORES=$(hwloc-calc --number-of PU PU:${RT_CPUS//,/ PU:})
+    RT_CPUS=$(hwloc-calc 2>/dev/null --intersect PU PU:${RT_CPUS//,/ PU:})
+    NONRT_CPUS=$(hwloc-calc 2>/dev/null --intersect PU all ~PU:${RT_CPUS//,/ ~PU:})
+    NUM_CORES=$(hwloc-calc 2>/dev/null --number-of PU PU:${RT_CPUS//,/ PU:})
 }
