@@ -1,0 +1,14 @@
+=======================================================
+    glmark2 2021.12
+=======================================================
+    OpenGL Information
+    GL_VENDOR:      Intel
+    GL_RENDERER:    Mesa Intel(R) HD Graphics 505 (APL 3)
+    GL_VERSION:     4.6 (Compatibility Profile) Mesa 20.3.5
+    Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
+    Surface Size:   800x600 windowed
+=======================================================
+[refract] duration=60: FPS: 112 FrameTime: 8.929 ms
+=======================================================
+                                  glmark2 Score: 112 
+=======================================================
