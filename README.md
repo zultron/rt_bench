@@ -14,6 +14,6 @@ DISPLAY=:0 ./run_tests.sh -d 600 -1 -o test_iwill_x_stress-ng "Yanling/Iwill N15
 
 ```
 DISPLAY=:0 ./run_tests.sh -d 60 -o test_mxe-211_gpu "ADLINK MXE-211:  GPU, isolcpus=izq"
-DISPLAY=:0 ./run_tests.sh -d 60 -o test_mxe-211_gpu "Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq"
-DISPLAY=:0 ./run_tests.sh -d 60 -o test_mxe-211_gpu "Yanling/Iwill N15 YL-KBRL2:  GPU, isolcpus=izq"
+DISPLAY=:0 ./run_tests.sh -d 60 -o test_h310m_gpu "Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq"
+DISPLAY=:0 ./run_tests.sh -d 60 -o test_iwill_gpu "Yanling/Iwill N15 YL-KBRL2:  GPU, isolcpus=izq"
 ```
