@@ -11,6 +11,14 @@ stable frequency to produce smooth, responsive motion.  A major,
 unsolved challenge is how to find controller hardware with good
 real-time characteristics to support high-performance motion control.
 
+[A few examples][1].
+
+Note:  Running `cyclictest` and `glmark2` (esp. certain 3D tests) at
+the same time causes hangs in most systems I've tried.  The reason is
+as yet unknown.
+
+[1]:  https://zultron.github.io/rt_bench/
+
 ## Building the tools
 
 The tools can be installed from Debian packages.
