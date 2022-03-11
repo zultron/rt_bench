@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[shading] duration=60:shading=blinn-phong-inf: FPS: 849 FrameTime: 1.178 ms
+[pulsar] duration=60:light=false:quads=5:texture=false: FPS: 882 FrameTime: 1.134 ms
 =======================================================
-                                  glmark2 Score: 849 
+                                  glmark2 Score: 882 
 =======================================================

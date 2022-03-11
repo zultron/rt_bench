@@ -1,239 +1,239 @@
                total        used        free      shared  buff/cache   available
-Mem:         7993332      453800     6800028       74712      739504     7361376
+Mem:         7993332      456820     6750928       93412      785584     7339496
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477204     6757456       90844      758672     7321128
+Mem:         7993332      474992     6713908      112268      804432     7301932
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477312     6758396       89792      757624     7322072
+Mem:         7993332      475116     6716660      109388      801556     7304688
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477296     6758544       89660      757492     7322240
+Mem:         7993332      475740     6733444       91980      784148     7321476
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476164     6758292       91044      758876     7321988
+Mem:         7993332      475744     6733580       91856      784008     7321596
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475996     6758292       91212      759044     7321988
+Mem:         7993332      475808     6733580       91792      783944     7321596
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476064     6757536       91892      759732     7321232
+Mem:         7993332      475788     6733580       91792      783964     7321612
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476908     6757708       90864      758716     7321404
+Mem:         7993332      475852     6733580       91728      783900     7321616
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476992     6757788       90700      758552     7321492
+Mem:         7993332      475848     6733580       91728      783904     7321616
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476992     6757788       90700      758552     7321496
+Mem:         7993332      475912     6733580       91664      783840     7321616
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476740     6758040       90700      758552     7321748
+Mem:         7993332      475848     6733580       91728      783904     7321620
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475968     6757788       91724      759576     7321496
+Mem:         7993332      475968     6733580       91600      783784     7321624
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476648     6757960       90864      758724     7321668
+Mem:         7993332      475572     6732824       92752      784936     7320872
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476732     6758040       90700      758560     7321748
+Mem:         7993332      475572     6732824       92752      784936     7320872
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476728     6758040       90700      758564     7321756
+Mem:         7993332      475828     6733580       91728      783924     7321636
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477128     6756780       91560      759424     7320496
+Mem:         7993332      475056     6733328       92752      784948     7321388
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477460     6756276       91724      759596     7319992
+Mem:         7993332      475316     6734084       91728      783932     7322152
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477476     6757284       90700      758572     7321000
+Mem:         7993332      475316     6734084       91728      783932     7322152
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477224     6757536       90700      758572     7321256
+Mem:         7993332      475548     6733832       91748      783952     7321900
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477224     6757536       90700      758572     7321256
+Mem:         7993332      475376     6734004       91748      783952     7322072
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476952     6756780       91724      759600     7320504
+Mem:         7993332      476112     6733328       91680      783892     7321396
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476764     6757032       91660      759536     7320768
+Mem:         7993332      475792     6733580       91744      783960     7321652
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476924     6756632       91888      759776     7320368
+Mem:         7993332      475600     6733832       91680      783900     7321912
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476936     6757788       90720      758608     7321524
+Mem:         7993332      475600     6733832       91680      783900     7321912
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476936     6757788       90720      758608     7321524
+Mem:         7993332      475600     6733832       91680      783900     7321916
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476152     6757536       91756      759644     7321272
+Mem:         7993332      475680     6733752       91680      783900     7321836
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476840     6757708       90896      758784     7321444
+Mem:         7993332      475592     6733832       91680      783908     7321916
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477168     6757536       90732      758628     7321272
+Mem:         7993332      475592     6733832       91680      783908     7321916
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477168     6757536       90732      758628     7321272
+Mem:         7993332      474920     6733580       92604      784832     7321664
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477164     6757536       90732      758632     7321272
+Mem:         7993332      474500     6733832       92768      785000     7321924
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476896     6756780       91756      759656     7320540
+Mem:         7993332      474672     6734692       91736      783968     7322784
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476904     6757788       90732      758640     7321548
+Mem:         7993332      474824     6734588       91680      783920     7322688
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476652     6758040       90732      758640     7321808
+Mem:         7993332      474652     6734760       91680      783920     7322860
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476652     6758040       90732      758640     7321808
+Mem:         7993332      474824     6734588       91680      783920     7322692
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476636     6757032       91756      759664     7320800
+Mem:         7993332      475076     6734336       91680      783920     7322440
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476692     6757032       91692      759608     7320808
+Mem:         7993332      474816     6734588       91680      783928     7322692
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476628     6757892       90896      758812     7321668
+Mem:         7993332      474816     6734588       91680      783928     7322692
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476628     6758040       90732      758664     7321816
+Mem:         7993332      475036     6733328       92712      784968     7321444
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476628     6758040       90732      758664     7321816
+Mem:         7993332      474980     6733328       92768      785024     7321444
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476776     6757032       91592      759524     7320808
+Mem:         7993332      476068     6733328       91680      783936     7321444
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476072     6756024       93292      761236     7319808
+Mem:         7993332      476064     6733328       91680      783940     7321448
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476664     6757536       91180      759132     7321320
+Mem:         7993332      475804     6733580       91680      783948     7321704
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476600     6757880       90900      758852     7321696
+Mem:         7993332      475012     6732996       93056      785324     7321120
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476604     6758040       90732      758688     7321856
+Mem:         7993332      475020     6732824       93216      785488     7320956
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475996     6757788       91592      759548     7321604
+Mem:         7993332      474792     6734588       91680      783952     7322724
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475832     6757788       91756      759712     7321604
+Mem:         7993332      475124     6734256       91680      783952     7322392
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476596     6758040       90732      758696     7321856
+Mem:         7993332      474532     6734840       91680      783960     7322976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476596     6758040       90732      758696     7321860
+Mem:         7993332      474532     6734840       91680      783960     7322976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476596     6758040       90732      758696     7321860
+Mem:         7993332      474720     6734588       91744      784024     7322732
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475988     6757788       91592      759556     7321608
+Mem:         7993332      474972     6734336       91744      784024     7322480
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      475756     6757788       91820      759788     7321616
+Mem:         7993332      475464     6733832       91744      784036     7321976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476364     6758212       90788      758756     7322040
+Mem:         7993332      475464     6733832       91744      784036     7321976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476080     6758544       90732      758708     7322376
+Mem:         7993332      475464     6733832       91744      784036     7321976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476080     6758544       90732      758708     7322376
+Mem:         7993332      475464     6733832       91744      784036     7321976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476064     6757536       91756      759732     7321368
+Mem:         7993332      475464     6733832       91744      784036     7321976
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476752     6757708       90896      758872     7321540
+Mem:         7993332      475456     6733832       91744      784044     7321988
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477168     6757456       90732      758708     7321288
+Mem:         7993332      474848     6733580       92604      784904     7321736
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477080     6757536       90732      758716     7321368
+Mem:         7993332      475464     6733832       91736      784036     7321992
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      476808     6756780       91756      759744     7320612
+Mem:         7993332      475200     6734084       91744      784048     7322248
 Swap:        1465340           0     1465340
 
                total        used        free      shared  buff/cache   available
-Mem:         7993332      477216     6756380       91748      759736     7320212
+Mem:         7993332      475200     6734084       91744      784048     7322248
 Swap:        1465340           0     1465340
