@@ -81,6 +81,7 @@ usage() {
 		  -G:  Reenable i915 Intel graphics kernel module
 		  -x:  Disable X windows
 		  -X:  Reenable X windows
+		  -y:  Don't prompt for confirmation ("Y"es)
 		  -h:  Print this help message
 		${*:+ERROR:  ${*}}
 		EOF
@@ -271,7 +272,7 @@ finalize() {
 ###########################
 
 if $CALLED_AS_SCRIPT; then
-    while getopts :dkr:iIzZqQcCgGxXh ARG; do
+    while getopts :dkr:iIzZqQcCgGxXyh ARG; do
         case $ARG in
             d) INSTALL_DOCKER=true; HAVE_ACT=true ;;
             k) INSTALL_RT_KERNEL=true; APT_GET_UPDATE=true; HAVE_ACT=true ;;
@@ -283,11 +284,12 @@ if $CALLED_AS_SCRIPT; then
             q) CONFIG_IRQAFFINITY=true; CHECK_CPU=true; HAVE_ACT=true ;;
             Q) RM_CONFIG_IRQAFFINITY=true; HAVE_ACT=true ;;
             c) INSTALL_CGROUPS=true; APT_GET_UPDATE=true; HAVE_ACT=true ;;
-            C) REMOVE_CGROUPS=true; HAVE_ACT=true ;;
+            C) RM_INSTALL_CGROUPS=true; HAVE_ACT=true ;;
             g) DISABLE_GPU=true; DISABLE_X=true; HAVE_ACT=true ;;
             G) ENABLE_GPU=true; HAVE_ACT=true ;;
             x) DISABLE_X=true; HAVE_ACT=true ;;
             X) ENABLE_X=true; HAVE_ACT=true ;;
+            y) YES=true ;;
             h) usage ;;
             *) usage "Unknown option '-$ARG'" ;;
         esac
@@ -296,7 +298,7 @@ if $CALLED_AS_SCRIPT; then
     ${HAVE_ACT:-false} || usage "No action specified"
 
     ! ${CHECK_CPU:-false} || check_cpu
-    confirm_changes
+    ${YES:-false} || confirm_changes
     UPDATE_GRUB=false
     ! ${APT_GET_UPDATE:-false} || ${APT_GET} update
     ! ${INSTALL_DOCKER:-false} || install_docker_ce
