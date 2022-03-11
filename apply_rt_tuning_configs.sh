@@ -30,6 +30,9 @@ APT_GET="${SUDO} env DEBIAN_FRONTEND=noninteractive apt-get"
 source $(dirname $BASH_SOURCE)/check_cpu.sh
 
 confirm_changes() {
+    test "$CHECK_CPU" != true -o -n "$RT_CPUS" || \
+        usage "Set RT_CPUS for -izq options"
+
     # Ask confirmation for we're about to do
     {
         echo "This script will:"
@@ -65,6 +68,7 @@ usage() {
 		Usage:  $BASH_SOURCE [arg ...]
 		  -d:  Install Docker CE
 		  -k:  Install PREEMPT_RT kernel + header packages
+		  -r:  Set RT_CPUs (for -izq options)
 		  -i:  Configure 'isolcpus=' kernel command line option
 		  -I:  Remove 'isolcpus=' kernel command line option
 		  -z:  Configure 'nohz_full=' kernel command line option
@@ -78,7 +82,7 @@ usage() {
 		  -x:  Disable X windows
 		  -X:  Reenable X windows
 		  -h:  Print this help message
-          $*
+		${*:+ERROR:  ${*}}
 		EOF
     test -n "$*" && exit 0 || exit 1
 }
@@ -267,28 +271,29 @@ finalize() {
 ###########################
 
 if $CALLED_AS_SCRIPT; then
-    test -n "${*}" || usage
-    while getopts :dkiIzZqQcCgGxXh ARG; do
+    while getopts :dkr:iIzZqQcCgGxXh ARG; do
         case $ARG in
-            d) INSTALL_DOCKER=true ;;
-            k) INSTALL_RT_KERNEL=true; APT_GET_UPDATE=true ;;
-            i) CONFIG_ISOLCPUS=true; CHECK_CPU=true ;;
-            I) RM_CONFIG_ISOLCPUS=true ;;
-            z) CONFIG_NOHZ_FULL=true; CHECK_CPU=true ;;
-            Z) RM_CONFIG_NOHZ_FULL=true ;;
-            q) CONFIG_IRQAFFINITY=true; CHECK_CPU=true ;;
-            Q) RM_CONFIG_IRQAFFINITY=true ;;
-            c) INSTALL_CGROUPS=true; APT_GET_UPDATE=true ;;
-            C) REMOVE_CGROUPS=true ;;
-            g) DISABLE_GPU=true ;;
-            G) ENABLE_GPU=true ;;
-            x) DISABLE_X=true ;;
-            X) ENABLE_X=true ;;
+            d) INSTALL_DOCKER=true; HAVE_ACT=true ;;
+            k) INSTALL_RT_KERNEL=true; APT_GET_UPDATE=true; HAVE_ACT=true ;;
+            r) RT_CPUS=$OPTARG ;;
+            i) CONFIG_ISOLCPUS=true; CHECK_CPU=true; HAVE_ACT=true ;;
+            I) RM_CONFIG_ISOLCPUS=true; HAVE_ACT=true ;;
+            z) CONFIG_NOHZ_FULL=true; CHECK_CPU=true; HAVE_ACT=true ;;
+            Z) RM_CONFIG_NOHZ_FULL=true; HAVE_ACT=true ;;
+            q) CONFIG_IRQAFFINITY=true; CHECK_CPU=true; HAVE_ACT=true ;;
+            Q) RM_CONFIG_IRQAFFINITY=true; HAVE_ACT=true ;;
+            c) INSTALL_CGROUPS=true; APT_GET_UPDATE=true; HAVE_ACT=true ;;
+            C) REMOVE_CGROUPS=true; HAVE_ACT=true ;;
+            g) DISABLE_GPU=true; DISABLE_X=true; HAVE_ACT=true ;;
+            G) ENABLE_GPU=true; HAVE_ACT=true ;;
+            x) DISABLE_X=true; HAVE_ACT=true ;;
+            X) ENABLE_X=true; HAVE_ACT=true ;;
             h) usage ;;
             *) usage "Unknown option '-$ARG'" ;;
         esac
     done
     shift $(($OPTIND - 1))
+    ${HAVE_ACT:-false} || usage "No action specified"
 
     ! ${CHECK_CPU:-false} || check_cpu
     confirm_changes

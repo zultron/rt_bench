@@ -1,19 +1,27 @@
 #!/bin/bash -e
 
+# Script & invocation info
 INVOCATION=( "${@}" ); INVOCATION=( "${INVOCATION[@]/#/\"}" );
 INVOCATION=( "\"$0\"" "${INVOCATION[@]/%/\"}" );
 THIS_DIR=$(readlink -f $(dirname $0))
 DATA_DIR=$THIS_DIR/tests
+
+# CPU & CPU isolation info
+CPU_DESC="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
+    /proc/cpuinfo)"
+RT_CPUS="$(sed -n '/isolcpus=/ s/^.*isolcpus=\([0-9,-]\+\).*$/\1/ p' /proc/cmdline)"
+if test -n "$RT_CPUS"; then
+    RT_CPUS=$(hwloc-calc --intersect PU PU:${RT_CPUS//,/ PU:})
+else
+    RT_CPUS=$(hwloc-calc --intersect PU all)
+fi
+NUM_CORES=$(hwloc-calc --number-of PU PU:${RT_CPUS//,/ PU:})
+
+# GPU info
 lsmod | grep -q '^i915 ' && HAVE_I915=true || HAVE_I915=false
-CGNAME=/rt
 glxinfo >&/dev/null && \
     GPU_ACCEL="$(glxinfo | sed -n 's/^\( *Accelerated: \)// p')" || GPU_ACCEL=no
 test $GPU_ACCEL = no || GPU_INFO="$(glxinfo | sed -n 's/^\( *Device: \)// p')"
-CPU="$(awk '/^model name/ {split($0, F, /: /); print(F[2]); exit}' \
-    /proc/cpuinfo)"
-
-# Determine RT CPUs and GPU info
-source $(dirname $BASH_SOURCE)/check_cpu.sh
 
 if test -z "$IN_DOCKER"; then
     # Find glmark2 (glmark2-es2?)
@@ -71,6 +79,7 @@ check_utils() {
 }
 
 setup_cgroup() {
+    CGNAME=/rt
     if ! $CREATE_CPUSET; then
         echo "Not setting up isolcpus cpuset cgroup" 1>&2
         return
@@ -166,7 +175,7 @@ html_header() {
 		      <li>cyclictest version:  $($CYCLICTEST --help | head -1)</li>
 		      <li>Test duration:  $DURATION seconds</li>
 		      <li>Kernel commandline:  $(cat /proc/cmdline)</li>
-		      <li>CPU:  $CPU</li>
+		      <li>CPU:  $CPU_DESC</li>
 		      <li>Number of CPUs:  $(nproc --all)</li>
 		      <li>Number of isolated CPUs:  $NUM_CORES  ($RT_CPUS)</li>
 		      <li>DMI info:  $(cat /sys/devices/virtual/dmi/id/modalias)</li>
@@ -243,7 +252,7 @@ mk_hist() {
 		graph_dist = (top_border - bot_border) / numcpus
 		EOF
 
-    for CPU in ${RT_CPUS//,/ }; do
+    for CPU_NR in ${RT_CPUS//,/ }; do
         i=$((i+1))
         # Clean up data
         local CPU_PLOT_DATA=$TEST_DIR/histogram$i
@@ -271,7 +280,7 @@ mk_hist() {
 			set xtics nomirror
 			EOF
         cat >>$PLOTCMD <<-EOF
-			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$CPU: max $MAX" with histeps
+			plot "$CPU_PLOT_DATA" using 1:2 title "CPU$CPU_NR: max $MAX" with histeps
 			#
 			EOF
     done
@@ -288,7 +297,7 @@ mk_hist() {
 
 test_sequential() {
     if test -z "$RT_CPUS"; then
-        echo "CPU '$CPU' unknown; please add to $BASH_SOURCE.  Exiting." >&2
+        echo "CPU '$CPU_DESC' unknown; please add to $BASH_SOURCE.  Exiting." >&2
         exit 1
     fi
     test ! -e $DATA_DIR || usage "Output directory exists; move or specify new one"
@@ -394,6 +403,5 @@ DESCRIPTION="$*"
 
 # setup_cgroup
 check_utils
-check_cpu
 trap cleanup EXIT ERR INT
 test_sequential

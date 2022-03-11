@@ -35,9 +35,7 @@ check_cpu() {
             INTEL_GPU_HANGS=true
             ;;
         *)
-            RT_CPUS=
-            NONRT_CPUS=
-            return
+            test -n "$RT_CPUS" || return
             ;;
     esac
     RT_CPUS=$(hwloc-calc --intersect PU PU:${RT_CPUS//,/ PU:})
