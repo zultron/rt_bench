@@ -1,0 +1,23 @@
+set terminal png
+set output "test_mxe-211_gpu/16/plot-16.png"
+set multiplot layout 1, 1 title "Latency histogram:  glmark2 pulsar:light=false:quads=5:texture=false" font ",14"
+unset xtics
+numcpus = 1
+top_border = (1 - 0.1)
+bot_border = 0.05
+inter_border = 0.02
+graph_height = (top_border - bot_border - inter_border * (numcpus - 1)) / numcpus
+graph_dist = (top_border - bot_border) / numcpus
+graphnum = 1
+set tmargin at screen (top_border - (graphnum-1) * graph_dist)
+set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
+set xrange [0:400]
+set logscale y
+set ytics font ",8"
+set yrange [0.8:*]
+set ylabel " "
+set xlabel "Latency (us)"
+set xtics nomirror
+plot "test_mxe-211_gpu/16/histogram1" using 1:2 title "CPU5: max 00050" with histeps
+#
+unset multiplot

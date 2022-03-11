@@ -1,0 +1,500 @@
+<html>
+  <head>
+    <title>Latency tests:  Thu, 10 Mar 2022 17:27:34 -0600</title>
+  </head>
+  <body>
+    <h1>Latency tests:  Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq</h1>
+    <ul>
+      <li>Date:  Thu, 10 Mar 2022 17:27:34 -0600</li>
+      <li>Invocation:  "./run_tests.sh" "-d" "60" "-o" "test_mxe-211_gpu" "Asus PRIME H310M-A R2.0:  GPU, isolcpus=izq"</li>
+      <li>cyclictest version:  cyclictest V 2.30</li>
+      <li>Test duration:  60 seconds</li>
+      <li>Kernel commandline:  BOOT_IMAGE=/boot/vmlinuz-4.19.0-14-rt-amd64 root=UUID=2c10d0d6-4ed6-49a0-a559-d0cd0eb05b3a ro intel_idle.max_cstate=1 isolcpus=5 isolcpus=5 nohz_full=5 irqaffinity=0-4</li>
+      <li>CPU:  Intel(R) Core(TM) i5-9400 CPU @ 2.90GHz</li>
+      <li>Number of CPUs:  6</li>
+      <li>Number of isolated CPUs:  1  (5)</li>
+      <li>DMI info:  dmi:bvnAmericanMegatrendsInc.:bvr1004:bd09/06/2019:svnSystemmanufacturer:pnSystemProductName:pvrSystemVersion:rvnASUSTeKCOMPUTERINC.:rnPRIMEH310M-AR2.0:rvrRevX.0x:cvnDefaultstring:ct3:cvrDefaultstring:</li>
+      <li>OS description:  Debian GNU/Linux 10 (buster)</li>
+      <li>GPU:  Mesa DRI Intel(R) HD Graphics (Coffeelake 3x8 GT2)  (0x3e98)</li>
+      <li>isolcpus=5</li>
+      <li>GPU acceleration:  yes</li>
+    </ul>
+
+    <h2>Test #01:  stress-ng</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      
+      <li><a href="01/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="01/cpu_top_out.txt">mpstat output</a></li>
+      
+      
+      <li><a href="01/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="01/mem_top_out.txt">free memory output</a></li>
+      <li><a href="01/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="01/plot-01.png"/>
+
+    <h2>Test #02:  glmark2 build:use-vbo=false</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b build:use-vbo=false:duration=60</li>
+      <li><a href="02/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="02/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="02/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="02/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="02/mem_top_out.txt">free memory output</a></li>
+      <li><a href="02/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="02/plot-02.png"/>
+
+    <h2>Test #03:  glmark2 build:use-vbo=true</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b build:use-vbo=true:duration=60</li>
+      <li><a href="03/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="03/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="03/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="03/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="03/mem_top_out.txt">free memory output</a></li>
+      <li><a href="03/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="03/plot-03.png"/>
+
+    <h2>Test #04:  glmark2 texture:texture-filter=nearest</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b texture:texture-filter=nearest:duration=60</li>
+      <li><a href="04/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="04/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="04/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="04/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="04/mem_top_out.txt">free memory output</a></li>
+      <li><a href="04/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="04/plot-04.png"/>
+
+    <h2>Test #05:  glmark2 texture:texture-filter=linear</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b texture:texture-filter=linear:duration=60</li>
+      <li><a href="05/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="05/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="05/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="05/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="05/mem_top_out.txt">free memory output</a></li>
+      <li><a href="05/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="05/plot-05.png"/>
+
+    <h2>Test #06:  glmark2 texture:texture-filter=mipmap</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b texture:texture-filter=mipmap:duration=60</li>
+      <li><a href="06/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="06/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="06/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="06/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="06/mem_top_out.txt">free memory output</a></li>
+      <li><a href="06/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="06/plot-06.png"/>
+
+    <h2>Test #07:  glmark2 shading:shading=gouraud</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b shading:shading=gouraud:duration=60</li>
+      <li><a href="07/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="07/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="07/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="07/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="07/mem_top_out.txt">free memory output</a></li>
+      <li><a href="07/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="07/plot-07.png"/>
+
+    <h2>Test #08:  glmark2 shading:shading=blinn-phong-inf</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b shading:shading=blinn-phong-inf:duration=60</li>
+      <li><a href="08/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="08/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="08/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="08/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="08/mem_top_out.txt">free memory output</a></li>
+      <li><a href="08/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="08/plot-08.png"/>
+
+    <h2>Test #09:  glmark2 shading:shading=phong</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b shading:shading=phong:duration=60</li>
+      <li><a href="09/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="09/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="09/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="09/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="09/mem_top_out.txt">free memory output</a></li>
+      <li><a href="09/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="09/plot-09.png"/>
+
+    <h2>Test #10:  glmark2 shading:shading=cel</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b shading:shading=cel:duration=60</li>
+      <li><a href="10/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="10/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="10/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="10/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="10/mem_top_out.txt">free memory output</a></li>
+      <li><a href="10/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="10/plot-10.png"/>
+
+    <h2>Test #11:  glmark2 bump:bump-render=high-poly</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b bump:bump-render=high-poly:duration=60</li>
+      <li><a href="11/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="11/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="11/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="11/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="11/mem_top_out.txt">free memory output</a></li>
+      <li><a href="11/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="11/plot-11.png"/>
+
+    <h2>Test #12:  glmark2 bump:bump-render=normals</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b bump:bump-render=normals:duration=60</li>
+      <li><a href="12/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="12/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="12/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="12/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="12/mem_top_out.txt">free memory output</a></li>
+      <li><a href="12/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="12/plot-12.png"/>
+
+    <h2>Test #13:  glmark2 bump:bump-render=height</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b bump:bump-render=height:duration=60</li>
+      <li><a href="13/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="13/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="13/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="13/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="13/mem_top_out.txt">free memory output</a></li>
+      <li><a href="13/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="13/plot-13.png"/>
+
+    <h2>Test #14:  glmark2 effect2d:kernel=0,1,0;1,-4,1;0,1,0;</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b effect2d:kernel=0,1,0;1,-4,1;0,1,0;:duration=60</li>
+      <li><a href="14/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="14/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="14/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="14/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="14/mem_top_out.txt">free memory output</a></li>
+      <li><a href="14/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="14/plot-14.png"/>
+
+    <h2>Test #15:  glmark2 effect2d:kernel=1,1,1,1,1;1,1,1,1,1;1,1,1,1,1;</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b effect2d:kernel=1,1,1,1,1;1,1,1,1,1;1,1,1,1,1;:duration=60</li>
+      <li><a href="15/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="15/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="15/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="15/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="15/mem_top_out.txt">free memory output</a></li>
+      <li><a href="15/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="15/plot-15.png"/>
+
+    <h2>Test #16:  glmark2 pulsar:light=false:quads=5:texture=false</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b pulsar:light=false:quads=5:texture=false:duration=60</li>
+      <li><a href="16/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="16/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="16/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="16/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="16/mem_top_out.txt">free memory output</a></li>
+      <li><a href="16/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="16/plot-16.png"/>
+
+    <h2>Test #17:  glmark2 desktop:blur-radius=5:effect=blur:passes=1:separable=true:windows=4</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b desktop:blur-radius=5:effect=blur:passes=1:separable=true:windows=4:duration=60</li>
+      <li><a href="17/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="17/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="17/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="17/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="17/mem_top_out.txt">free memory output</a></li>
+      <li><a href="17/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="17/plot-17.png"/>
+
+    <h2>Test #18:  glmark2 desktop:effect=shadow:windows=4</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b desktop:effect=shadow:windows=4:duration=60</li>
+      <li><a href="18/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="18/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="18/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="18/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="18/mem_top_out.txt">free memory output</a></li>
+      <li><a href="18/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="18/plot-18.png"/>
+
+    <h2>Test #19:  glmark2 buffer:columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=map</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b buffer:columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=map:duration=60</li>
+      <li><a href="19/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="19/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="19/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="19/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="19/mem_top_out.txt">free memory output</a></li>
+      <li><a href="19/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="19/plot-19.png"/>
+
+    <h2>Test #20:  glmark2 buffer:columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=subdata</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b buffer:columns=200:interleave=false:update-dispersion=0.9:update-fraction=0.5:update-method=subdata:duration=60</li>
+      <li><a href="20/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="20/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="20/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="20/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="20/mem_top_out.txt">free memory output</a></li>
+      <li><a href="20/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="20/plot-20.png"/>
+
+    <h2>Test #21:  glmark2 buffer:columns=200:interleave=true:update-dispersion=0.9:update-fraction=0.5:update-method=map</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b buffer:columns=200:interleave=true:update-dispersion=0.9:update-fraction=0.5:update-method=map:duration=60</li>
+      <li><a href="21/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="21/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="21/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="21/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="21/mem_top_out.txt">free memory output</a></li>
+      <li><a href="21/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="21/plot-21.png"/>
+
+    <h2>Test #22:  glmark2 ideas:speed=duration</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b ideas:speed=duration:duration=60</li>
+      <li><a href="22/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="22/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="22/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="22/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="22/mem_top_out.txt">free memory output</a></li>
+      <li><a href="22/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="22/plot-22.png"/>
+
+    <h2>Test #23:  glmark2 jellyfish</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b jellyfish:duration=60</li>
+      <li><a href="23/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="23/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="23/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="23/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="23/mem_top_out.txt">free memory output</a></li>
+      <li><a href="23/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="23/plot-23.png"/>
+
+    <h2>Test #24:  glmark2 terrain</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b terrain:duration=60</li>
+      <li><a href="24/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="24/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="24/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="24/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="24/mem_top_out.txt">free memory output</a></li>
+      <li><a href="24/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="24/plot-24.png"/>
+
+    <h2>Test #25:  glmark2 shadow</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b shadow:duration=60</li>
+      <li><a href="25/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="25/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="25/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="25/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="25/mem_top_out.txt">free memory output</a></li>
+      <li><a href="25/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="25/plot-25.png"/>
+
+    <h2>Test #26:  glmark2 refract</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b refract:duration=60</li>
+      <li><a href="26/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="26/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="26/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="26/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="26/mem_top_out.txt">free memory output</a></li>
+      <li><a href="26/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="26/plot-26.png"/>
+
+    <h2>Test #27:  glmark2 conditionals:fragment-steps=0:vertex-steps=0</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b conditionals:fragment-steps=0:vertex-steps=0:duration=60</li>
+      <li><a href="27/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="27/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="27/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="27/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="27/mem_top_out.txt">free memory output</a></li>
+      <li><a href="27/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="27/plot-27.png"/>
+
+    <h2>Test #28:  glmark2 conditionals:fragment-steps=5:vertex-steps=0</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b conditionals:fragment-steps=5:vertex-steps=0:duration=60</li>
+      <li><a href="28/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="28/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="28/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="28/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="28/mem_top_out.txt">free memory output</a></li>
+      <li><a href="28/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="28/plot-28.png"/>
+
+    <h2>Test #29:  glmark2 conditionals:fragment-steps=0:vertex-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b conditionals:fragment-steps=0:vertex-steps=5:duration=60</li>
+      <li><a href="29/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="29/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="29/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="29/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="29/mem_top_out.txt">free memory output</a></li>
+      <li><a href="29/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="29/plot-29.png"/>
+
+    <h2>Test #30:  glmark2 function:fragment-complexity=low:fragment-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b function:fragment-complexity=low:fragment-steps=5:duration=60</li>
+      <li><a href="30/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="30/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="30/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="30/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="30/mem_top_out.txt">free memory output</a></li>
+      <li><a href="30/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="30/plot-30.png"/>
+
+    <h2>Test #31:  glmark2 function:fragment-complexity=medium:fragment-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b function:fragment-complexity=medium:fragment-steps=5:duration=60</li>
+      <li><a href="31/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="31/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="31/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="31/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="31/mem_top_out.txt">free memory output</a></li>
+      <li><a href="31/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="31/plot-31.png"/>
+
+    <h2>Test #32:  glmark2 loop:fragment-loop=false:fragment-steps=5:vertex-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b loop:fragment-loop=false:fragment-steps=5:vertex-steps=5:duration=60</li>
+      <li><a href="32/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="32/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="32/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="32/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="32/mem_top_out.txt">free memory output</a></li>
+      <li><a href="32/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="32/plot-32.png"/>
+
+    <h2>Test #33:  glmark2 loop:fragment-steps=5:fragment-uniform=false:vertex-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b loop:fragment-steps=5:fragment-uniform=false:vertex-steps=5:duration=60</li>
+      <li><a href="33/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="33/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="33/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="33/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="33/mem_top_out.txt">free memory output</a></li>
+      <li><a href="33/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="33/plot-33.png"/>
+
+    <h2>Test #34:  glmark2 loop:fragment-steps=5:fragment-uniform=true:vertex-steps=5</h2>
+    <ul>
+      <li>Command:  cyclictest -D60 -m -p90 -i200 -h400 -q -t 1 -a5</li>
+      <li>glmark2 command:  glmark2 --data-path /home/pathpilot/rt_bench/build/glmark2/data -b loop:fragment-steps=5:fragment-uniform=true:vertex-steps=5:duration=60</li>
+      <li><a href="34/stress_ng_out.txt">stress-ng output</a></li>
+      <li><a href="34/cpu_top_out.txt">mpstat output</a></li>
+      <li><a href="34/glmark2_out.txt">glmark2 output</a></li>
+      
+      <li><a href="34/gpu_top_out.txt">intel_gpu_top output</a></li>
+      <li><a href="34/mem_top_out.txt">free memory output</a></li>
+      <li><a href="34/cyclictest_out.txt">raw cyclictest output</a></li>
+    </ul>
+    <img src="34/plot-34.png"/>
+
+  </body>
+</html>

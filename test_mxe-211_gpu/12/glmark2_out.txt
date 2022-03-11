@@ -1,0 +1,14 @@
+=======================================================
+    glmark2 2021.12
+=======================================================
+    OpenGL Information
+    GL_VENDOR:      Intel Open Source Technology Center
+    GL_RENDERER:    Mesa DRI Intel(R) HD Graphics (Coffeelake 3x8 GT2) 
+    GL_VERSION:     3.0 Mesa 18.3.6
+    Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=8
+    Surface Size:   800x600 windowed
+=======================================================
+[bump] bump-render=normals:duration=60: FPS: 3406 FrameTime: 0.294 ms
+=======================================================
+                                  glmark2 Score: 3406 
+=======================================================
