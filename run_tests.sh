@@ -329,6 +329,11 @@ test_sequential() {
         # Print info to console & HTML file
         echo
         echo "****************"
+        if test "$CASE" = none; then
+            echo "Test #$i:  (skipping)"
+            echo "    <h2>Test #$i:  (skipping)</h2>"
+            continue
+        fi
         echo "Test #$i:  $TITLE"
         echo "Command:  $CYCLICTEST $CT_ARGS"
         echo "Output:  $DATA_FILE"
