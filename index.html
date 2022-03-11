@@ -5,23 +5,19 @@
   <body>
     <h1>
       Latency test run results
-      from <a href="https://github.com/zultron/rt_bench">rt_bench</a>
+      using <a href="https://github.com/zultron/rt_bench">rt_bench</a>
     </h1>
     <ul>
-      <li>ADLINK MXE-211
+      <li>Single 10 minute run, stress-ng only, isolcpus=izq
         <ul>
-          <li><a href="test_mxe-211_x_stress-ng/tests.html">GPU, isolcpus=izq</a></li>
-          <li><a href="test_mxe-211_gpu/tests.html">GPU, isolcpus=izq</a></li>
+          <li><a href="test_mxe-211_x_stress-ng/tests.html">ADLINK MXE-211</a></li>
+          <li><a href="test_h310m_x_stress-ng/tests.html">Asus PRIME H310M-A R2.0</a></li>
+          <li><a href="test_iwill_x_stress-ng/tests.html">Yanling/Iwill N15 YL-KBRL2</a></li>
         </ul>
       </li>
-      <li>Asus PRIME H310M-A R2.0
+      <li>All GPU tests, 1 minute each, isolcpus=izq
         <ul>
-          <li><a href="test_h310m_x_stress-ng/tests.html">GPU, isolcpus=izq</a></li>
-        </ul>
-      </li>
-      <li>Yanling/Iwill N15 YL-KBRL2
-        <ul>
-          <li><a href="test_iwill_x_stress-ng/tests.html">GPU, isolcpus=izq</a></li>
+          <li><a href="test_mxe-211_gpu/tests.html">ADLINK MXE-211</a></li>
         </ul>
       </li>
     </ul>
