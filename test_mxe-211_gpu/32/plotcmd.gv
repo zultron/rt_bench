@@ -1,8 +1,8 @@
 set terminal png
 set output "test_mxe-211_gpu/32/plot-32.png"
-set multiplot layout 4, 1 title "Latency histogram:  glmark2 loop:fragment-loop=false:fragment-steps=5:vertex-steps=5" font ",14"
+set multiplot layout 2, 1 title "Latency histogram:  glmark2 loop:fragment-loop=false:fragment-steps=5:vertex-steps=5" font ",14"
 unset xtics
-numcpus = 4
+numcpus = 2
 top_border = (1 - 0.1)
 bot_border = 0.05
 inter_border = 0.02
@@ -16,7 +16,8 @@ set logscale y
 set ytics font ",8"
 set yrange [0.8:*]
 set ylabel " "
-plot "test_mxe-211_gpu/32/histogram1" using 1:2 title "CPU0: max 00046" with histeps
+set ylabel "Number of latency samples"
+plot "test_mxe-211_gpu/32/histogram1" using 1:2 title "CPU2: max 00286" with histeps
 #
 graphnum = 2
 set tmargin at screen (top_border - (graphnum-1) * graph_dist)
@@ -26,29 +27,8 @@ set logscale y
 set ytics font ",8"
 set yrange [0.8:*]
 set ylabel " "
-plot "test_mxe-211_gpu/32/histogram2" using 1:2 title "CPU1: max 00059" with histeps
-#
-graphnum = 3
-set tmargin at screen (top_border - (graphnum-1) * graph_dist)
-set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
-set xrange [0:400]
-set logscale y
-set ytics font ",8"
-set yrange [0.8:*]
-set ylabel " "
-set ylabel "Number of latency samples"
-plot "test_mxe-211_gpu/32/histogram3" using 1:2 title "CPU2: max 00090" with histeps
-#
-graphnum = 4
-set tmargin at screen (top_border - (graphnum-1) * graph_dist)
-set bmargin at screen (top_border - (graphnum-1) * graph_dist - graph_height)
-set xrange [0:400]
-set logscale y
-set ytics font ",8"
-set yrange [0.8:*]
-set ylabel " "
 set xlabel "Latency (us)"
 set xtics nomirror
-plot "test_mxe-211_gpu/32/histogram4" using 1:2 title "CPU3: max 00081" with histeps
+plot "test_mxe-211_gpu/32/histogram2" using 1:2 title "CPU3: max 00347" with histeps
 #
 unset multiplot

@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[conditionals] duration=60:fragment-steps=0:vertex-steps=0: FPS: 741 FrameTime: 1.350 ms
+[conditionals] duration=60:fragment-steps=0:vertex-steps=0: FPS: 709 FrameTime: 1.410 ms
 =======================================================
-                                  glmark2 Score: 741 
+                                  glmark2 Score: 709 
 =======================================================

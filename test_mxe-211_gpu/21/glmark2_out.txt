@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[buffer] columns=200:duration=60:interleave=true:update-dispersion=0.9:update-fraction=0.5:update-method=map: FPS: 155 FrameTime: 6.452 ms
+[buffer] columns=200:duration=60:interleave=true:update-dispersion=0.9:update-fraction=0.5:update-method=map: FPS: 159 FrameTime: 6.289 ms
 =======================================================
-                                  glmark2 Score: 155 
+                                  glmark2 Score: 159 
 =======================================================

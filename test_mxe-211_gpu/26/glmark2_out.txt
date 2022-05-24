@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[refract] duration=60: FPS: 112 FrameTime: 8.929 ms
+[refract] duration=60: FPS: 111 FrameTime: 9.009 ms
 =======================================================
-                                  glmark2 Score: 112 
+                                  glmark2 Score: 111 
 =======================================================

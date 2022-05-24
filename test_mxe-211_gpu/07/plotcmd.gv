@@ -17,7 +17,7 @@ set ytics font ",8"
 set yrange [0.8:*]
 set ylabel " "
 set ylabel "Number of latency samples"
-plot "test_mxe-211_gpu/07/histogram1" using 1:2 title "CPU2: max 00053" with histeps
+plot "test_mxe-211_gpu/07/histogram1" using 1:2 title "CPU2: max 00054" with histeps
 #
 graphnum = 2
 set tmargin at screen (top_border - (graphnum-1) * graph_dist)
@@ -29,6 +29,6 @@ set yrange [0.8:*]
 set ylabel " "
 set xlabel "Latency (us)"
 set xtics nomirror
-plot "test_mxe-211_gpu/07/histogram2" using 1:2 title "CPU3: max 00047" with histeps
+plot "test_mxe-211_gpu/07/histogram2" using 1:2 title "CPU3: max 00042" with histeps
 #
 unset multiplot

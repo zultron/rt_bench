@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[loop] duration=60:fragment-loop=false:fragment-steps=5:vertex-steps=5: FPS: 726 FrameTime: 1.377 ms
+[loop] duration=60:fragment-loop=false:fragment-steps=5:vertex-steps=5: FPS: 713 FrameTime: 1.403 ms
 =======================================================
-                                  glmark2 Score: 726 
+                                  glmark2 Score: 713 
 =======================================================

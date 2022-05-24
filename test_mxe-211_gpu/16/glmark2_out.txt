@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[pulsar] duration=60:light=false:quads=5:texture=false: FPS: 882 FrameTime: 1.134 ms
+[pulsar] duration=60:light=false:quads=5:texture=false: FPS: 836 FrameTime: 1.196 ms
 =======================================================
-                                  glmark2 Score: 882 
+                                  glmark2 Score: 836 
 =======================================================

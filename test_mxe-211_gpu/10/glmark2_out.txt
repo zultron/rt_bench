@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[shading] duration=60:shading=cel: FPS: 837 FrameTime: 1.195 ms
+[shading] duration=60:shading=cel: FPS: 791 FrameTime: 1.264 ms
 =======================================================
-                                  glmark2 Score: 837 
+                                  glmark2 Score: 791 
 =======================================================

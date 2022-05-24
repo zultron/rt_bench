@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[effect2d] duration=60:kernel=0,1,0;1,-4,1;0,1,0;: FPS: 906 FrameTime: 1.104 ms
+[effect2d] duration=60:kernel=0,1,0;1,-4,1;0,1,0;: FPS: 863 FrameTime: 1.159 ms
 =======================================================
-                                  glmark2 Score: 906 
+                                  glmark2 Score: 863 
 =======================================================

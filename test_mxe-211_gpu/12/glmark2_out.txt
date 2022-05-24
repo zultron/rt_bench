@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[bump] bump-render=normals:duration=60: FPS: 1140 FrameTime: 0.877 ms
+[bump] bump-render=normals:duration=60: FPS: 1079 FrameTime: 0.927 ms
 =======================================================
-                                  glmark2 Score: 1140 
+                                  glmark2 Score: 1079 
 =======================================================

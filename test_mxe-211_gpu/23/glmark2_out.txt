@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[jellyfish] duration=60: FPS: 478 FrameTime: 2.092 ms
+[jellyfish] duration=60: FPS: 463 FrameTime: 2.160 ms
 =======================================================
-                                  glmark2 Score: 478 
+                                  glmark2 Score: 463 
 =======================================================
