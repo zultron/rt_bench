@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[build] duration=60:use-vbo=false: FPS: 980 FrameTime: 1.020 ms
+[build] duration=60:use-vbo=false: FPS: 925 FrameTime: 1.081 ms
 =======================================================
-                                  glmark2 Score: 980 
+                                  glmark2 Score: 925 
 =======================================================

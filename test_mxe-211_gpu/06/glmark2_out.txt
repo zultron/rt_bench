@@ -8,7 +8,7 @@
     Surface Config: buf=32 r=8 g=8 b=8 a=8 depth=24 stencil=0
     Surface Size:   800x600 windowed
 =======================================================
-[texture] duration=60:texture-filter=mipmap: FPS: 1030 FrameTime: 0.971 ms
+[texture] duration=60:texture-filter=mipmap: FPS: 967 FrameTime: 1.034 ms
 =======================================================
-                                  glmark2 Score: 1030 
+                                  glmark2 Score: 967 
 =======================================================
