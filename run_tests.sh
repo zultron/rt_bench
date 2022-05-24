@@ -379,7 +379,7 @@ usage() {
 		  -o PATH:  Location of output dir (default $DATA_DIR)
 		  -s NUM:   Skip the first NUM tests
 		  -1:       Run only one test with stress-ng and no glmark2
-		  -x:       For "eXternal" struss:  run one test without stress-ng/glmark2
+		  -x:       For "eXternal" stress:  run one test without stress-ng/glmark2
 		  -h:       This usage message
 		EOF
     if test -z "$1"; then
@@ -393,7 +393,7 @@ usage() {
 DURATION=20
 RUN_ONE=false
 EXTERNAL_STRESS=false
-while getopts :d:o:s:1h ARG; do
+while getopts :d:o:s:1xh ARG; do
     case $ARG in
         d) DURATION=$OPTARG ;;
         o) DATA_DIR=$OPTARG ;;
